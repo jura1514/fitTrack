@@ -8,87 +8,69 @@ import {
   Alert,
   AsyncStorage
 } from "react-native";
-// import { Expo } from "expo";
 
-const FB_APP_ID = "298553117405390";
+const FB_APP_ID = '298553117405390';
 
 export class Login extends React.Component {
   static navigationOptions = {
     title: "Login"
   };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      username: "",
-      passwrd: ""
-    };
-  }
+  // constructor(props) {
+  //   super(props);
+  //   this.state = {
+  //     token: "",
+  //     expires: ""
+  //   };
+  // }
 
   cancelLogin = () => {
     Alert.alert("Login cancelled");
     this.props.navigation.navigate("HomeRT");
   };
 
-  // loginUser = () => {
-  //   if (!this.state.username) {
-  //     Alert.alert("Please enter a username");
-  //   } else if (!this.state.passwrd) {
-  //     Alert.alert("Please enter a password");
-  //   } else {
-  //     AsyncStorage.getItem("userLoggedIn", (err, result) => {
-  //       if (result !== "none") {
-  //         Alert.alert("Someone already logged on");
-  //         this.props.navigation.navigate("HomeRT");
-  //       } else {
-  //         AsyncStorage.getItem(this.state.username, (err, result) => {
-  //           if (result !== null) {
-  //             if (result !== this.state.passwrd) {
-  //               Alert.alert("Password incorrect");
-  //             } else {
-  //               AsyncStorage.setItem(
-  //                 "userLoggedIn",
-  //                 this.state.username,
-  //                 (err, result) => {
-  //                   Alert.alert(`${this.state.username} Logged in`);
-  //                   this.props.navigation.navigate("HomeRT");
-  //                 }
-  //               );
-  //             }
-  //           } else {
-  //             Alert.alert(`No account for ${this.state.username}`);
-  //           }
-  //         });
-  //       }
-  //     });
-  //   }
-  // };
-
   _logIn = async () => {
+    const options = {
+      permissions: ['public_profile', 'email'],
+    };
     try {
-      const { type, token } = await Expo.Facebook.logInWithReadPermissionsAsync(
-        FB_APP_ID,
-        {
-          permissions: ["public_profile"]
-        }
+      const { type, token, expires } = await Expo.Facebook.logInWithReadPermissionsAsync(
+        FB_APP_ID, options
       );
-      debugger;
       if (type === "success") {
         // Get the user's name using Facebook's Graph API
-        const response = await fetch(
+        let response = await fetch(
           `https://graph.facebook.com/me?access_token=${token}`
         );
-        Alert.alert("Logged in!", `Hi ${(await response.json()).name}!`);
+
+        let name = await response.json().name;
+
+        let session = {
+          "token": token,
+          "expires": expires
+        };
+
+        let fuu = await AsyncStorage.setItem(
+          'userSession',
+          JSON.stringify(session),
+          (err, result) => {
+            Alert.alert(`User ${name} Successfully Logged In.`);
+            this.props.navigation.navigate("HomeRT");
+          }
+        );
+        console.log(fuu);
+      } else {
+        Alert.alert("Failed to login.");
       }
-    } catch(e) {
-      console.log(e);
+    } catch (error) {
+      console.log(error);
     }
   };
 
   render() {
     return (
       <View style={styles.container}>
-        <TextInput
+        {/* <TextInput
           style={styles.inputs}
           onChangeText={text => this.setState({ username: text })}
           value={this.state.username}
@@ -101,7 +83,7 @@ export class Login extends React.Component {
           value={this.state.passwrd}
           secureTextEntry={true}
         />
-        <Text style={styles.label}>Enter Password</Text>
+        <Text style={styles.label}>Enter Password</Text> */}
 
         <View style={styles.buttonsView}>
           <Button

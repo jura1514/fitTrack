@@ -1,13 +1,16 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
 import { createStackNavigator } from "react-navigation";
 
 import { Login } from "./app/views/Login.js";
+import { Home } from "./app/views/Home.js";
 
 const MyRoutes = createStackNavigator(
   {
     LoginRT: {
       screen: Login
+    },
+    HomeRT: {
+      screen: Home
     }
   },
   {

@@ -16,5 +16,4 @@ module.exports = {
         "react-native/no-inline-styles": 1,
         "react-native/no-color-literals": 1,
     }
-  },
 };
