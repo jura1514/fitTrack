@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "fitTrack",
-    "description": "This project is really great.",
+    "description": "App to help you make your workouts easier.",
     "slug": "fitTrack",
     "privacy": "public",
     "sdkVersion": "30.0.0",

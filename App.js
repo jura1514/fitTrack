@@ -1,21 +1,28 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { createStackNavigator } from "react-navigation";
+
+import { Login } from "./app/views/Login.js";
+
+const MyRoutes = createStackNavigator(
+  {
+    LoginRT: {
+      screen: Login
+    }
+  },
+  {
+    initialRouteName: "LoginRT",
+    navigationOptions: () => ({
+      headerTitleStyle: {
+        fontWeight: "bold"
+      },
+      headerLayoutPreset: 'center'
+    }),
+  }
+);
 
 export default class App extends React.Component {
   render() {
-    return (
-      <View style={styles.container}>
-        <Text>Open up App.js to start working on your app!</Text>
-      </View>
-    );
+    return <MyRoutes />;
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
