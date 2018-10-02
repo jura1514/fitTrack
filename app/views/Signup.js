@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {
   StyleSheet,
-  Text,
-  View,
-  TextInput,
   TouchableHighlight,
+  Text,
+  TextInput,
+  View,
   Alert,
   KeyboardAvoidingView,
   Image,
@@ -58,11 +58,14 @@ const styles = StyleSheet.create({
   loginText: {
     color: 'white',
   },
+  errorPassword: {
+    color: 'red'
+  },
 });
 
-export default class Login extends React.Component {
+export default class Signup extends React.Component {
   static navigationOptions = {
-    title: 'Login',
+    title: 'Register',
   };
 
   constructor(props) {
@@ -70,24 +73,46 @@ export default class Login extends React.Component {
     this.state = {
       email: '',
       password: '',
+      confirmPassword: '',
+      passwordDoesMatch: false,
       loading: false,
     };
   }
 
-  onLoginPress = () => {
-    this.setState({ loading: true });
+  handleSignUp = async () => {
+    try {
+      this.setState({ loading: true });
 
-    const { email, password } = this.state;
-    db.auth()
-      .signInWithEmailAndPassword(email, password)
-      .then(() => {
-        Alert.alert('Logged in.');
+      const { email, password } = this.state;
+      const results = await db
+        .auth()
+        .createUserWithEmailAndPassword(email, password);
+
+      if (results) {
         this.setState({ loading: false });
-      })
-      .catch((error) => {
-        this.setState({ loading: false });
-        Alert.alert('Failed to login.', `Reason: ${error.message}`);
-      });
+        Alert.alert('Success.', 'User has been registered');
+        this.props.navigation.navigate('LoginRT');
+      }
+    } catch (error) {
+      this.setState({ loading: false });
+      Alert.alert('Failed to signup.', `Reason: ${error.message}`);
+    }
+  };
+
+  handleConfirmPasswordChange = (confirmPassword) => {
+    this.setState({ confirmPassword });
+    if (this.state.password === confirmPassword) {
+      this.setState({ passwordDoesMatch: true });
+    } else {
+      this.setState({ passwordDoesMatch: false });
+    }
+  };
+
+  renderPasswordError = () => {
+    if (!this.state.passwordDoesMatch && this.state.confirmPassword) {
+      return <Text style={styles.errorPassword}>Password does not match</Text>;
+    }
+    return null;
   };
 
   renderLoading = () => {
@@ -98,8 +123,6 @@ export default class Login extends React.Component {
   }
 
   render() {
-    const { navigate } = this.props.navigation;
-
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <View style={styles.inputContainer}>
@@ -132,34 +155,46 @@ export default class Login extends React.Component {
           />
         </View>
 
+        <View style={styles.inputContainer}>
+          <Image style={styles.inputIcon} source={require('../../assets/icons/checked.png')} />
+          <TextInput
+            style={styles.inputs}
+            placeholder="Confirm Password"
+            secureTextEntry
+            underlineColorAndroid="transparent"
+            onChangeText={confirmPassword => this.handleConfirmPasswordChange(confirmPassword)}
+            value={this.state.confirmPassword}
+          />
+        </View>
+        {this.renderPasswordError()}
+
         <TouchableHighlight
           style={[styles.buttonContainer, styles.loginButton]}
-          disabled={!this.state.password || !this.state.email}
-          onPress={() => this.onLoginPress()}
+          disabled={
+            !this.state.password
+            || !this.state.email
+            || !this.state.confirmPassword
+            || !this.state.passwordDoesMatch
+          }
+          onPress={() => this.handleSignUp()}
         >
-          <Text style={styles.loginText}>Login</Text>
+          <Text style={styles.loginText}>Register</Text>
         </TouchableHighlight>
 
         <TouchableHighlight
           style={styles.buttonContainer}
-          onPress={() => navigate('ForgotRT')}
+          onPress={() => this.props.navigation.navigate('LoginRT')}
         >
-          <Text>Forgot your password?</Text>
+          <Text>Already have an account? Login</Text>
         </TouchableHighlight>
 
-        <TouchableHighlight
-          style={styles.buttonContainer}
-          onPress={() => navigate('SignupRT')}
-        >
-          <Text>Register</Text>
-        </TouchableHighlight>
         {this.renderLoading()}
       </KeyboardAvoidingView>
     );
   }
 }
 
-Login.propTypes = {
+Signup.propTypes = {
   navigation: PropTypes.shape({
     navigate: PropTypes.func.isRequired,
   }).isRequired,

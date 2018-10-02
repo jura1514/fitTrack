@@ -1,8 +1,23 @@
-import React from "react";
-import { StyleSheet, Text, View, Button, AsyncStorage, Alert } from "react-native";
+import React from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  AsyncStorage,
+  Alert,
+} from 'react-native';
 
-export class Home extends React.Component {
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    paddingBottom: '45%',
+    paddingTop: '10%',
+  },
+});
 
+export default class Home extends React.Component {
   displaySessionDetails = () => {
     AsyncStorage.getItem('userSession', (err, result) => {
       console.log(result);
@@ -19,12 +34,3 @@ export class Home extends React.Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    paddingBottom: "45%",
-    paddingTop: "10%"
-  }
-});

@@ -52,54 +52,52 @@ const styles = StyleSheet.create({
     width: 250,
     borderRadius: 30,
   },
-  loginButton: {
+  resetButton: {
     backgroundColor: '#00b5ec',
   },
-  loginText: {
+  resetText: {
     color: 'white',
   },
 });
 
-export default class Login extends React.Component {
+export default class Forgot extends React.Component {
   static navigationOptions = {
-    title: 'Login',
+    title: 'Reset Password',
   };
 
   constructor(props) {
     super(props);
     this.state = {
       email: '',
-      password: '',
       loading: false,
     };
   }
 
-  onLoginPress = () => {
+  onResetPress() {
     this.setState({ loading: true });
 
-    const { email, password } = this.state;
+    const { email } = this.state;
     db.auth()
-      .signInWithEmailAndPassword(email, password)
+      .sendPasswordResetEmail(email)
       .then(() => {
-        Alert.alert('Logged in.');
+        Alert.alert('Success', 'Password reset successfully sent.');
         this.setState({ loading: false });
+        this.props.navigation.navigate('LoginRT');
       })
       .catch((error) => {
         this.setState({ loading: false });
-        Alert.alert('Failed to login.', `Reason: ${error.message}`);
+        Alert.alert('Failed to reset password.', `Reason: ${error.message}`);
       });
-  };
+  }
 
   renderLoading = () => {
     if (this.state.loading) {
       return <Loading animating={this.state.loading} />;
     }
     return null;
-  }
+  };
 
   render() {
-    const { navigate } = this.props.navigation;
-
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
         <View style={styles.inputContainer}>
@@ -117,49 +115,21 @@ export default class Login extends React.Component {
           />
         </View>
 
-        <View style={styles.inputContainer}>
-          <Image
-            style={styles.inputIcon}
-            source={require('../../assets/icons/key.png')}
-          />
-          <TextInput
-            style={styles.inputs}
-            placeholder="Password"
-            secureTextEntry
-            underlineColorAndroid="transparent"
-            onChangeText={password => this.setState({ password })}
-            value={this.state.password}
-          />
-        </View>
-
         <TouchableHighlight
-          style={[styles.buttonContainer, styles.loginButton]}
-          disabled={!this.state.password || !this.state.email}
-          onPress={() => this.onLoginPress()}
+          style={[styles.buttonContainer, styles.resetButton]}
+          disabled={!this.state.email}
+          onPress={() => this.onResetPress()}
         >
-          <Text style={styles.loginText}>Login</Text>
+          <Text style={styles.resetText}>Reset Password</Text>
         </TouchableHighlight>
 
-        <TouchableHighlight
-          style={styles.buttonContainer}
-          onPress={() => navigate('ForgotRT')}
-        >
-          <Text>Forgot your password?</Text>
-        </TouchableHighlight>
-
-        <TouchableHighlight
-          style={styles.buttonContainer}
-          onPress={() => navigate('SignupRT')}
-        >
-          <Text>Register</Text>
-        </TouchableHighlight>
         {this.renderLoading()}
       </KeyboardAvoidingView>
     );
   }
 }
 
-Login.propTypes = {
+Forgot.propTypes = {
   navigation: PropTypes.shape({
     navigate: PropTypes.func.isRequired,
   }).isRequired,

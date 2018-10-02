@@ -1,31 +1,42 @@
-import React from "react";
-import { createStackNavigator } from "react-navigation";
+import React from 'react';
+import { createStackNavigator } from 'react-navigation';
 
-import { Login } from "./app/views/Login.js";
-import { Home } from "./app/views/Home.js";
+import Login from './app/views/Login';
+import Home from './app/views/Home';
+import Signup from './app/views/Signup';
+import Forgot from './app/views/Forgot';
 
 const MyRoutes = createStackNavigator(
   {
     LoginRT: {
-      screen: Login
+      screen: Login,
     },
     HomeRT: {
-      screen: Home
-    }
+      screen: Home,
+    },
+    SignupRT: {
+      screen: Signup,
+    },
+    ForgotRT: {
+      screen: Forgot,
+    },
   },
   {
-    initialRouteName: "LoginRT",
+    initialRouteName: 'LoginRT',
     navigationOptions: () => ({
       headerTitleStyle: {
-        fontWeight: "bold"
+        fontWeight: 'bold',
       },
-      headerLayoutPreset: 'center'
+      headerLayoutPreset: 'center',
     }),
-  }
+  },
 );
 
-export default class App extends React.Component {
+// eslint-disable-next-line react/prefer-stateless-function
+class App extends React.Component {
   render() {
     return <MyRoutes />;
   }
 }
+
+export default App;
