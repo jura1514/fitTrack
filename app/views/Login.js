@@ -81,14 +81,25 @@ export default class Login extends React.Component {
     db.auth()
       .signInWithEmailAndPassword(email, password)
       .then(() => {
-        Alert.alert('Logged in.');
-        this.setState({ loading: false });
+        // this.saveUserData(email);
+        this.props.navigation.navigate('HomeRT');
       })
       .catch((error) => {
         this.setState({ loading: false });
         Alert.alert('Failed to login.', `Reason: ${error.message}`);
       });
   };
+
+  // saveUserData = async (email) => {
+  //   try {
+  //     await AsyncStorage.setItem('email', email);
+  //     this.setState({ loading: false });
+  //     this.props.navigation.navigate('HomeRT');
+  //   } catch (error) {
+  //     this.setState({ loading: false });
+  //     Alert.alert('Failed to save user data.', `Reason: ${error.message}`);
+  //   }
+  // }
 
   renderLoading = () => {
     if (this.state.loading) {

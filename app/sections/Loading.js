@@ -5,7 +5,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Modal,
 } from 'react-native';
 
 const styles = StyleSheet.create({
@@ -37,10 +36,6 @@ export default class Loading extends React.Component {
     return (
       <View
         style={styles.container}
-        // transparent
-        // animationType="none"
-        // visible={this.props.animating}
-        // onRequestClose={() => {}}
       >
         <View style={styles.activityIndicatorWrapper}>
           <ActivityIndicator

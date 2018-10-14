@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   errorPassword: {
-    color: 'red'
+    color: 'red',
   },
 });
 
