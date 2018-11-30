@@ -7,7 +7,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import UserAvatar from 'react-native-user-avatar';
+import { GestureHandler } from 'expo';
 import { FontAwesome } from '@expo/vector-icons';
+
+const { TapGestureHandler, State } = GestureHandler;
 
 const styles = StyleSheet.create({
   container: {
@@ -55,6 +58,8 @@ const styles = StyleSheet.create({
 });
 
 class WorkoutListItem extends React.PureComponent {
+    doubleTapRef = React.createRef();
+
     onPress = () => {
       this.props.onPressItem(this.props.id);
     };
@@ -74,23 +79,50 @@ class WorkoutListItem extends React.PureComponent {
       );
     };
 
+    onSingleTap = (event) => {
+      if (event.nativeEvent.state === State.ACTIVE) {
+        this.props.navigation.navigate('ManageWorkoutRT', {
+          wourkoutId: this.props.id,
+        });
+      }
+    };
+
+    onDoubleTap = (event) => {
+      if (event.nativeEvent.state === State.ACTIVE) {
+        this.onPress();
+      }
+    };
+
     render() {
       const icon = this.avatarOnSelected();
       return (
-        <TouchableOpacity style={this.props.isSelected ? styles.selected : ''} onPress={this.onPress}>
-          <View style={styles.container}>
-            {icon}
-            <View style={styles.content}>
-              <View style={styles.mainContent}>
-                <View style={styles.text}>
-                  <Text style={styles.workoutName}>{this.props.nameTitle}</Text>
+        <TapGestureHandler
+          onHandlerStateChange={this.onSingleTap}
+          waitFor={this.doubleTapRef}
+        >
+          <TapGestureHandler
+            ref={this.doubleTapRef}
+            onHandlerStateChange={this.onDoubleTap}
+            numberOfTaps={2}
+          >
+            <View>
+              <TouchableOpacity style={this.props.isSelected ? styles.selected : ''}>
+                <View style={styles.container}>
+                  {icon}
+                  <View style={styles.content}>
+                    <View style={styles.mainContent}>
+                      <View style={styles.text}>
+                        <Text style={styles.workoutName}>{this.props.nameTitle}</Text>
+                      </View>
+                      <Text style={styles.countDays}>{this.props.daysTitle}</Text>
+                      <Text style={styles.timeAgo}>{this.props.createTitle}</Text>
+                    </View>
+                  </View>
                 </View>
-                <Text style={styles.countDays}>{this.props.daysTitle}</Text>
-                <Text style={styles.timeAgo}>{this.props.createTitle}</Text>
-              </View>
+              </TouchableOpacity>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TapGestureHandler>
+        </TapGestureHandler>
       );
     }
 }
@@ -107,5 +139,8 @@ WorkoutListItem.propTypes = {
   workout: PropTypes.shape({
     name: PropTypes.string.isRequired,
     charAt: PropTypes.func.isRequired,
+  }).isRequired,
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
   }).isRequired,
 };

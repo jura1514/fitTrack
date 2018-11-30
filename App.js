@@ -1,12 +1,39 @@
 import React from 'react';
-import { createStackNavigator } from 'react-navigation';
+import { createStackNavigator, createDrawerNavigator } from 'react-navigation';
 
 import Splash from './app/views/Splash';
 import Login from './app/views/Login';
 import Home from './app/views/Home';
 import Signup from './app/views/Signup';
 import Forgot from './app/views/Forgot';
-import AddWorkout from './app/views/workout/AddWorkout';
+import ManageWorkout from './app/views/workout/ManageWorkout';
+import WorkoutList from './app/views/workout/WorkoutList';
+
+const HomeStack = createStackNavigator(
+  {
+    HomeRT: {
+      screen: Home,
+    },
+  },
+);
+const WorkoutListStack = createStackNavigator(
+  {
+    WorkoutListRT: {
+      screen: WorkoutList,
+    },
+  },
+);
+
+const MyDrawerRoutes = createDrawerNavigator({
+  Home: {
+    screen: HomeStack,
+  },
+  Workout: {
+    screen: WorkoutListStack,
+  },
+}, {
+  drawerPosition: 'Left',
+});
 
 const MyRoutes = createStackNavigator(
   {
@@ -17,7 +44,10 @@ const MyRoutes = createStackNavigator(
       screen: Login,
     },
     HomeRT: {
-      screen: Home,
+      screen: MyDrawerRoutes,
+      navigationOptions: {
+        header: null,
+      },
     },
     SignupRT: {
       screen: Signup,
@@ -25,8 +55,8 @@ const MyRoutes = createStackNavigator(
     ForgotRT: {
       screen: Forgot,
     },
-    AddWorkoutRT: {
-      screen: AddWorkout,
+    ManageWorkoutRT: {
+      screen: ManageWorkout,
     },
   },
   {

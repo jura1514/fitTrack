@@ -8,12 +8,11 @@ import {
   TouchableOpacity,
   View,
   Image,
+  Text,
 } from 'react-native';
-import ActionButton from 'react-native-action-button';
 import { FontAwesome } from '@expo/vector-icons';
-import WorkoutListItem from './workout/WorkoutListItem';
 import db from '../config/firebase';
-import { getWorkouts, deleteWorkout } from '../services/WorkoutService';
+import { getWorkouts } from '../services/WorkoutService';
 import Loading from '../sections/Loading';
 
 const styles = StyleSheet.create({
@@ -23,37 +22,34 @@ const styles = StyleSheet.create({
     marginRight: 15,
     justifyContent: 'center',
   },
-  deleteBtn: {
-    display: 'none',
+  menuIcon: {
+    marginLeft: 15,
   },
-  headerView: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  binIcon: {
-    width: 30,
-    height: 30,
-    marginRight: 15,
+  noActive: {
+    flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    color: 'red',
+    fontWeight: 'bold',
+  },
+  noActiveText: {
+    fontSize: 22,
   },
 });
 
 export default class Home extends React.Component {
   static navigationOptions = ({ navigation }) => {
     const { params = {} } = navigation.state;
-    const id = params.selectedWorkout ? params.selectedWorkout : '';
     return {
       headerTitle: 'Home',
-      headerLeft: null,
+      headerLeft: (
+        <FontAwesome name="bars" style={styles.menuIcon} size={30} onPress={() => navigation.toggleDrawer()} />
+      ),
       headerRight: (
         <View style={styles.headerView}>
-          <TouchableOpacity style={id === '' ? styles.deleteBtn : ''} onPress={() => params.handleSelectedItem(id)}>
-            <FontAwesome name="trash-o" size={30} style={styles.binIcon} />
-          </TouchableOpacity>
           <TouchableOpacity onPress={() => params.handleLogOut()}>
             <Image
               style={styles.imagestyle}
+               // eslint-disable-next-line
               source={require('../../assets/icons/exit.png')}
             />
           </TouchableOpacity>
@@ -65,8 +61,6 @@ export default class Home extends React.Component {
   state = {
     workouts: [],
     loading: false,
-    isSelected: false,
-    selectedId: '',
   };
 
   componentDidMount() {
@@ -78,10 +72,6 @@ export default class Home extends React.Component {
     this.didFocusListener.remove();
     this.didBlurListener.remove();
   }
-
-  handleAddWorkout = () => {
-    this.props.navigation.navigate('AddWorkoutRT');
-  };
 
   logoutUser = async () => {
     try {
@@ -111,35 +101,15 @@ export default class Home extends React.Component {
       // eslint-disable-next-line
       for (let key in snapshot.val()) {
         const newObj = snapshot.val()[key];
-        newObj.id = key;
-        workoutsArray.push(newObj);
+        if (newObj.isActive) {
+          newObj.id = key;
+          workoutsArray.push(newObj);
+        }
       }
       this.setState({ workouts: workoutsArray });
       this.setState({ loading: false });
     } else {
       this.setState({ loading: false });
-    }
-  }
-
-  handleDeleteWorkout = async (id) => {
-    Alert.alert(
-      'Alert',
-      'Are you sure you want to delete this workout?',
-      [
-        { text: 'Cancel', onPress: () => null, style: 'cancel' },
-        { text: 'OK', onPress: () => this.deleteWorkout(id) },
-      ],
-      { cancelable: false },
-    );
-  };
-
-  deleteWorkout = async (id) => {
-    try {
-      await deleteWorkout(id);
-      this.props.navigation.setParams({ selectedWorkout: '' });
-      this.loadData();
-    } catch (e) {
-      Alert.alert('Error', `Could delete a workout. Reason:${e}`);
     }
   }
 
@@ -156,76 +126,33 @@ export default class Home extends React.Component {
     return null;
   }
 
-  onPressAction = (id) => {
-    if (id) {
-      if (!this.state.isSelected) {
-        this.setState({ isSelected: true });
-        this.setState({ selectedId: id });
-
-        this.props.navigation.setParams({ selectedWorkout: id });
-        this.props.navigation.setParams({ handleSelectedItem: this.handleDeleteWorkout });
-      } else if (this.state.isSelected && this.state.selectedId !== id) {
-        this.setState({ isSelected: true });
-        this.setState({ selectedId: id });
-
-        this.props.navigation.setParams({ selectedWorkout: id });
-        this.props.navigation.setParams({ handleSelectedItem: this.handleDeleteWorkout });
-      } else if (this.state.isSelected && this.state.selectedId === id) {
-        this.setState({ isSelected: false });
-        this.setState({ selectedId: '' });
-
-        this.props.navigation.setParams({ selectedWorkout: '' });
-      } else {
-        this.setState({ isSelected: false });
-        this.setState({ selectedId: '' });
-
-        this.props.navigation.setParams({ selectedWorkout: '' });
-      }
-    }
-  };
-
-  highlightItem = (itemId) => {
-    if (this.state.isSelected && this.state.selectedId === itemId) {
-      return true;
-    }
-    return false;
-  }
-
   render() {
+    if (this.state.workouts.length > 0) {
+      return [
+        <FlatList
+          key="id"
+          data={this.state.workouts}
+          extraData={this.state}
+          style={styles.list}
+          keyExtractor={item => item.id}
+          renderItem={(item) => {
+            const workout = item.item;
+            const nameTitle = workout.name;
+            return (
+              <View>
+                <Text>{nameTitle}</Text>
+              </View>
+            );
+          }}
+        />,
+        this.renderLoading(),
+      ];
+    }
     return [
-      <FlatList
-        key="id"
-        data={this.state.workouts}
-        extraData={this.state}
-        style={styles.list}
-        keyExtractor={item => item.id}
-        renderItem={(item) => {
-          const workout = item.item;
-          const daysTitle = `has ${workout.numberOfDays} days`;
-          const createTitle = `created on: ${workout.creationTime}`;
-          let nameTitle = workout.name;
-          if (workout.isActive) {
-            nameTitle = `${workout.name} - ACTIVE`;
-          }
-          return (
-            <WorkoutListItem
-              id={workout.id}
-              workout={workout}
-              nameTitle={nameTitle}
-              daysTitle={daysTitle}
-              createTitle={createTitle}
-              isSelected={this.highlightItem(workout.id)}
-              onPressItem={this.onPressAction}
-            />
-          );
-        }}
-      />,
+      <View style={styles.noActive}>
+        <Text style={styles.noActiveText}>No ACTIVE workouts</Text>
+      </View>,
       this.renderLoading(),
-      <ActionButton
-        key="fab"
-        buttonColor="#00b5ec"
-        onPress={() => this.handleAddWorkout()}
-      />,
     ];
   }
 }

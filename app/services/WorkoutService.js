@@ -33,6 +33,23 @@ export const addWorkoutToDb = (name, numberOfDays, isActive) => {
     });
 };
 
+export const updateWorkout = (id, name, numberOfDays, isActive) => db
+  .database()
+  .ref(`/Workouts/${id}`)
+  .update({
+    name,
+    numberOfDays,
+    isActive,
+  })
+  .then((data) => {
+    // success callback
+    console.log('data ', data);
+  })
+  .catch((error) => {
+    // error callback
+    console.log('error ', error);
+  });
+
 export const getWorkouts = () => {
   const user = getCurrentUser();
   const { email } = user;
@@ -44,6 +61,11 @@ export const getWorkouts = () => {
     .equalTo(email)
     .once('value');
 };
+
+export const getWorkout = id => db
+  .database()
+  .ref(`/Workouts/${id}`)
+  .once('value');
 
 export function formatDateTime(dateString) {
   const parsed = moment(new Date(dateString));
