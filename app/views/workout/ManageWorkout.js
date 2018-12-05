@@ -14,6 +14,7 @@ import {
   getWorkouts, updateWorkout, addWorkoutToDb, getWorkout,
 } from '../../services/WorkoutService';
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -78,7 +79,7 @@ const styles = StyleSheet.create({
   },
 });
 
-class AddWorkout extends Component {
+class ManageWorkout extends Component {
   static navigationOptions = ({ navigation }) => {
     const { params = {} } = navigation.state;
     const header = params.wourkoutId ? 'Edit Workout' : 'Add Workout';
@@ -163,6 +164,7 @@ class AddWorkout extends Component {
   };
 
   createOrUpdateWorkout = () => {
+    this.setState({ numberOfDays: 5 });
     if (this.state.workoutRecord) {
       const workoutId = this.props.navigation.getParam('wourkoutId', null);
       updateWorkout(
@@ -172,7 +174,10 @@ class AddWorkout extends Component {
         this.state.makeActive,
       ).then(() => {
         Alert.alert('Success', 'Workout updated');
-        this.props.navigation.goBack();
+        // this.props.navigation.goBack();
+        this.props.navigation.navigate('ManageDaysRT', {
+          wourkoutId: workoutId,
+        });
       })
         .catch((error) => {
           Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
@@ -181,7 +186,7 @@ class AddWorkout extends Component {
       addWorkoutToDb(this.state.name, this.state.numberOfDays, this.state.makeActive)
         .then(() => {
           Alert.alert('Success', 'Workout added');
-          this.props.navigation.goBack();
+          this.props.navigation.navigate('ManageDaysRT');
         })
         .catch((error) => {
           Alert.alert('Error', `Couldn't add a workout. Reason:${error}`);
@@ -217,7 +222,7 @@ class AddWorkout extends Component {
       return <Loading key="loader" animating={this.state.loading} />;
     }
     return null;
-  }
+  };
 
   render() {
     return (
@@ -232,14 +237,6 @@ class AddWorkout extends Component {
             spellCheck={false}
             value={this.state.name}
           />
-          <TextInput
-            style={styles.text}
-            keyboardType="numeric"
-            onChangeText={numberOfDays => this.handleDaysInput(numberOfDays)}
-            placeholder="Days"
-            spellCheck={false}
-            value={this.state.numberOfDays}
-          />
           <View style={styles.switchView}>
             <Text style={styles.switchTitle}>Make this workout Active?</Text>
             <Switch
@@ -252,9 +249,9 @@ class AddWorkout extends Component {
         {this.renderError()}
         <TouchableHighlight
           onPress={this.handleAddEditPress}
-          disabled={this.state.name.length === 0 || !this.state.numberOfDays || this.state.error}
+          disabled={this.state.name.length === 0 || this.state.error}
           style={
-            this.state.name.length === 0 || !this.state.numberOfDays || this.state.error
+            this.state.name.length === 0 || this.state.error
               ? styles.disabledBtn
               : styles.button}
         >
@@ -268,9 +265,9 @@ class AddWorkout extends Component {
   }
 }
 
-export default AddWorkout;
+export default ManageWorkout;
 
-AddWorkout.propTypes = {
+ManageWorkout.propTypes = {
   navigation: PropTypes.shape({
     goBack: PropTypes.func.isRequired,
     navigate: PropTypes.func.isRequired,

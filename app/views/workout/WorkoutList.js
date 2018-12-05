@@ -110,10 +110,9 @@ export default class WorkoutList extends React.Component {
 
   loadData = async () => {
     this.setState({ loading: true });
+    const workoutsArray = [];
     const snapshot = await getWorkouts();
     if (snapshot.val()) {
-      const workoutsArray = [];
-
       // eslint-disable-next-line
       for (let key in snapshot.val()) {
         const newObj = snapshot.val()[key];
@@ -123,6 +122,7 @@ export default class WorkoutList extends React.Component {
       this.setState({ workouts: workoutsArray });
       this.setState({ loading: false });
     } else {
+      this.setState({ workouts: workoutsArray });
       this.setState({ loading: false });
     }
   }

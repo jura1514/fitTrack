@@ -7,6 +7,7 @@ import Home from './app/views/Home';
 import Signup from './app/views/Signup';
 import Forgot from './app/views/Forgot';
 import ManageWorkout from './app/views/workout/ManageWorkout';
+import ManageDays from './app/views/workout/ManageDays';
 import WorkoutList from './app/views/workout/WorkoutList';
 
 const HomeStack = createStackNavigator(
@@ -57,6 +58,9 @@ const MyRoutes = createStackNavigator(
     },
     ManageWorkoutRT: {
       screen: ManageWorkout,
+    },
+    ManageDaysRT: {
+      screen: ManageDays,
     },
   },
   {
