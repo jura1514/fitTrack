@@ -7,6 +7,7 @@ import {
   Text,
   Dimensions,
   TextInput,
+  Alert,
 } from 'react-native';
 import ActionButton from 'react-native-action-button';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
@@ -16,6 +17,10 @@ import Carousel, { Pagination } from 'react-native-snap-carousel';
 import Loading from '../../sections/Loading';
 import ExerciseSection from '../../sections/ExerciseSection';
 import Devider from '../../sections/Devider';
+import {
+  getDays, addDayToDb, updateDayDb,
+} from '../../services/DayService';
+import { getExercises, addExerciseToDb, updateExerciseDb } from '../../services/ExerciseService';
 
 // caruousel settings
 const SliderWidth = Dimensions.get('screen').width;
@@ -219,16 +224,32 @@ class ManageDays extends Component {
 
   state = {
     loading: false,
-    days: data,
-    images: [],
+    workoutId: null,
+    days: [],
+    exercises: [],
+    defaultDay: {
+      name: null,
+      weekDay: null,
+    },
+    defaultExercise: {
+      name: null,
+      sets: '0',
+      reps: '0',
+      description: null,
+    },
+    refresh: false,
   };
+
+  componentDidMount() {
+    this.didFocusListener = this.props.navigation.addListener('didFocus', this.didFocus);
+  }
 
   get pagination() {
     const { days, activeSlide } = this.state;
     return (
       <Pagination
         dotsLength={days.length}
-        activeDotIndex={activeSlide}
+        activeDotIndex={activeSlide || 0}
         containerStyle={styles.paginationContainer}
         dotStyle={styles.dotStyle}
         inactiveDotStyle={{
@@ -238,6 +259,222 @@ class ManageDays extends Component {
         inactiveDotScale={0.6}
       />
     );
+  }
+
+  didFocus = () => {
+    const workoutId = this.props.navigation.getParam('wourkoutId', null);
+
+    if (workoutId) {
+      this.loadData(workoutId);
+      this.setState({ workoutId });
+    } else {
+      this.props.navigation.navigate('WorkoutListRT');
+    }
+  };
+
+  loadData = async (workoutId) => {
+    this.setState({ loading: true });
+    const daysArray = [];
+    const snapshot = await getDays(workoutId);
+    if (snapshot.val()) {
+      // eslint-disable-next-line
+      for (let key in snapshot.val()) {
+        const newObj = snapshot.val()[key];
+        newObj.id = key;
+        daysArray.push(newObj);
+      }
+      await this.getExercisesForDays(daysArray.map(e => e.id));
+
+      this.setState({ days: daysArray });
+      this.setState({ loading: false });
+    } else {
+      this.setState({ days: daysArray });
+      this.setState({ loading: false });
+    }
+  };
+
+  getExercisesForDays = async (dayIds) => {
+    const exercisesArray = [];
+    if (dayIds.length > 0) {
+      await dayIds.forEach(async (e) => {
+        const snapshot = await getExercises(e);
+        if (snapshot.val()) {
+          // eslint-disable-next-line
+          for (let key in snapshot.val()) {
+            const newObj = snapshot.val()[key];
+            newObj.id = key;
+            exercisesArray.push(newObj);
+          }
+        }
+      });
+
+      this.setState({ exercises: exercisesArray });
+      this.refreshCarousel();
+    }
+  };
+
+  addNewExercise = () => {
+    const { exercises } = this.state;
+    const { days } = this.state;
+    const { carousel } = this.state;
+    const newExercise = this.state.defaultExercise;
+
+    const selectedDay = days[carousel.currentIndex];
+
+    if (selectedDay.id) {
+      // newExercise.index = exercises.length > 0 ? exercises.length + 1 : 1;
+
+      newExercise.dayId = selectedDay.id;
+
+      exercises.push(newExercise);
+      this.refreshCarousel();
+    } else {
+      Alert.alert('Error', 'Save day data first');
+    }
+  };
+
+  addNewDay = () => {
+    const { days } = this.state;
+    const newDay = this.state.defaultDay;
+
+    days.push(newDay);
+    this.refreshCarousel();
+    this.state.carousel.snapToNext();
+  };
+
+  saveData = () => {
+    const { days } = this.state;
+    const { exercises } = this.state;
+
+    if (this.validDay(days)) {
+      if (exercises.length > 0) {
+        const invalidExercise = this.validExercises(exercises);
+        if (!invalidExercise) {
+          this.saveDays(days);
+          this.saveExercises(exercises);
+        } else {
+          Alert.alert('Error', `Please enter all mandaory fields for exercise ${exercises.indexOf(invalidExercise) + 1}`);
+        }
+      } else {
+        this.saveDays(days);
+      }
+    } else {
+      Alert.alert('Error', 'Please enter all fields for day');
+    }
+  };
+
+  saveDays = (days) => {
+    const promises = [];
+    days.forEach((day) => {
+      if (day.id) {
+        const promise = new Promise((resolve, reject) => {
+          this.updateDay(day).then((response) => {
+            resolve(response);
+          })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+
+        promises.push(promise);
+      } else {
+        const promise = new Promise((resolve, reject) => {
+          this.addDayToDb(day).then((response) => {
+            day.id = response; // eslint-disable-line no-param-reassign
+            resolve();
+          })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+
+        promises.push(promise);
+      }
+    });
+
+    Promise.all(promises).then(() => {
+      this.refreshCarousel();
+    });
+  };
+
+  saveExercises = (exercises) => {
+    const promises = [];
+    exercises.forEach((e) => {
+      if (e.id) {
+        const promise = new Promise((resolve, reject) => {
+          this.updateExercise(e).then((response) => {
+            resolve(response);
+          })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+
+        promises.push(promise);
+      } else {
+        const promise = new Promise((resolve, reject) => {
+          this.addExerciseToDb(e).then((response) => {
+            e.id = response;
+            resolve();
+          })
+            .catch((error) => {
+              reject(error);
+            });
+        });
+
+        promises.push(promise);
+      }
+    });
+
+    Promise.all(promises).then(() => {
+      this.refreshCarousel();
+    });
+  };
+
+  validDay = (days) => {
+    const invalidDay = days.find((e) => {
+      return !e.name || !e.weekDay;
+    });
+
+    return !invalidDay;
+  };
+
+  validExercises = (exercises) => {
+    const invalidExercise = exercises.find((e) => {
+      return !e.name || !e.sets || !e.reps;
+    });
+
+    return invalidExercise;
+  }
+
+  addDayToDb = (day) => {
+    return addDayToDb(day.name, day.weekDay, this.state.workoutId);
+  };
+
+  updateDay = (day) => {
+    return updateDayDb(day.id, day.name, day.weekDay);
+  };
+
+  addExerciseToDb = (e) => {
+    return addExerciseToDb(e.name, e.sets, e.reps, e.description, e.dayId);
+  };
+
+  updateExercise = (e) => {
+    return updateExerciseDb(e.id, e.name, e.sets, e.reps, e.description);
+  };
+
+  getCurrentDayExercises = (day) => {
+    const { exercises } = this.state;
+
+    if (exercises.length > 0) {
+      const filteredExercises = exercises.filter((e) => {
+        return e.dayId === day.item.id;
+      });
+
+      return filteredExercises;
+    }
+
+    return exercises;
   }
 
   pickImage = async () => {
@@ -251,10 +488,39 @@ class ManageDays extends Component {
   };
 
   renderExercises = (day) => {
-    return (
-      <ExerciseSection day={day} />
-    );
+    const { days } = this.state;
+    const { carousel } = this.state;
+    const selectedDay = days[carousel.currentIndex];
+    const dayExercises = this.getCurrentDayExercises(day);
+
+    if (selectedDay.id === day.item.id) {
+      return (
+        <ExerciseSection day={day} exercises={dayExercises} />
+      );
+    }
+
+    return null;
   };
+
+  updateDayName = (text, day) => {
+    // eslint-disable-next-line
+    const daysCopy = this.state.days;
+    const index = daysCopy.findIndex(i => i.id === day.item.id);
+    daysCopy[index].name = text;
+    this.setState({ days: daysCopy });
+  };
+
+  updateWeekDay = (text, day) => {
+    // eslint-disable-next-line
+    const daysCopy = this.state.days;
+    const index = daysCopy.findIndex(i => i.id === day.item.id);
+    daysCopy[index].weekDay = text;
+    this.setState({ days: daysCopy });
+  };
+
+  refreshCarousel() {
+    this.setState(prevState => ({ refresh: !prevState.refresh }));
+  }
 
   renderDays = (day) => {
     return (
@@ -266,6 +532,7 @@ class ManageDays extends Component {
           style={styles.textInput}
           placeholder="type day name"
           spellCheck={false}
+          onChangeText={(text) => { this.updateDayName(text, day); }}
           value={day.item.name}
         />
         <Text style={styles.textTitle}>
@@ -275,7 +542,8 @@ class ManageDays extends Component {
           style={styles.textInput}
           placeholder="select week day"
           spellCheck={false}
-          value={day.item.weekday}
+          onChangeText={(text) => { this.updateWeekDay(text, day); }}
+          value={day.item.weekDay}
         />
         <Devider />
         {this.renderExercises(day)}
@@ -296,29 +564,40 @@ class ManageDays extends Component {
         style={this.props.loading ? styles.loadingContainer : styles.container}
       >
         <ScrollView contentContainerStyle={styles.contentContainer}>
-          <Carousel
-            data={this.state.days}
-            // firstItem={FirstItem}
-            itemWidth={ItemWidth}
-            sliderWidth={SliderWidth}
-            sliderHeight={SliderHeight}
-            activeSlideAlignment="center"
-            renderItem={this.renderDays}
-            onSnapToItem={index => this.setState({ activeSlide: index })}
-          />
+          <View behavior="position" keyboardVerticalOffset={50}>
+            <Carousel
+              ref={(c) => { this.state.carousel = c; }}
+              data={this.state.days}
+              extraData={this.state.refresh}
+              // firstItem={FirstItem}
+              itemWidth={ItemWidth}
+              sliderWidth={SliderWidth}
+              sliderHeight={SliderHeight}
+              activeSlideAlignment="center"
+              renderItem={this.renderDays}
+              onSnapToItem={index => this.setState({ activeSlide: index })}
+            />
+          </View>
         </ScrollView>
         <ActionButton buttonColor="#00b5ec">
           <ActionButton.Item
+            buttonColor="rgba(231,76,60,1)"
+            title="Save"
+            onPress={() => this.saveData()}
+          >
+            <FontAwesome name="save" size={25} />
+          </ActionButton.Item>
+          <ActionButton.Item
             buttonColor="#1abc9c"
             title="New Day"
-            onPress={() => {}}
+            onPress={() => this.addNewDay()}
           >
             <FontAwesome name="calendar-plus-o" size={25} />
           </ActionButton.Item>
           <ActionButton.Item
             buttonColor="#9b59b6"
             title="New Exercise"
-            onPress={() => {}}
+            onPress={() => this.addNewExercise()}
           >
             <MaterialIcons name="playlist-add" size={25} />
           </ActionButton.Item>

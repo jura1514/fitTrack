@@ -59,17 +59,53 @@ const styles = StyleSheet.create({
   },
 });
 
-// eslint-disable-next-line react/prefer-stateless-function
 export default class ExerciseSection extends React.Component {
+  state = {
+    day: this.props.day.item,
+    exercises: this.props.exercises,
+  };
+
+  componentWillReceiveProps(newProps) {
+    this.setState({ exercises: newProps.exercises });
+  }
+
+  updateExerciseName = (text, index) => {
+    // eslint-disable-next-line
+    const exercisesCopy = this.state.exercises;
+    exercisesCopy[index].name = text;
+    this.setState({ exercises: exercisesCopy });
+  };
+
+  updateExerciseSets = (text, index) => {
+    // eslint-disable-next-line
+    const exercisesCopy = this.state.exercises;
+    exercisesCopy[index].sets = text;
+    this.setState({ exercises: exercisesCopy });
+  };
+
+  updateExerciseReps = (text, index) => {
+    // eslint-disable-next-line
+    const exercisesCopy = this.state.exercises;
+    exercisesCopy[index].reps = text;
+    this.setState({ exercises: exercisesCopy });
+  };
+
+  updateExerciseDesc = (text, index) => {
+    // eslint-disable-next-line
+    const exercisesCopy = this.state.exercises;
+    exercisesCopy[index].description = text;
+    this.setState({ exercises: exercisesCopy });
+  };
+
   render() {
     return (
       <View>
         <Text style={styles.textTitle}>
-          { 'Exercises at this day' }
+          { `Exercises at: ${this.state.day.name ? this.state.day.name : ''}` }
         </Text>
         <Devider />
-        {
-        this.props.day.item.exercises.map((element, index) => {
+        {this.state.exercises.length > 0}
+        {this.state.exercises.map((element, index) => {
           return (
             <View style={styles.exerciseContainer}>
               <Text style={styles.textExerciseNumber}>
@@ -84,6 +120,8 @@ export default class ExerciseSection extends React.Component {
                   style={[styles.textExerciseInput, styles.exerciseBox]}
                   placeholder="type exercise name"
                   spellCheck={false}
+                  /* eslint-disable no-param-reassign */
+                  onChangeText={(text) => { this.updateExerciseName(text, index); }}
                   value={element.name}
                 />
               </View>
@@ -97,6 +135,8 @@ export default class ExerciseSection extends React.Component {
                   style={[styles.textExerciseInput, styles.exerciseBox]}
                   placeholder="select number of sets"
                   spellCheck={false}
+                  /* eslint-disable no-param-reassign */
+                  onChangeText={(text) => { this.updateExerciseSets(text, index); }}
                   value={element.sets}
                 />
               </View>
@@ -110,6 +150,8 @@ export default class ExerciseSection extends React.Component {
                   style={[styles.textExerciseInput, styles.exerciseBox]}
                   placeholder="select number of reps"
                   spellCheck={false}
+                  /* eslint-disable no-param-reassign */
+                  onChangeText={(text) => { this.updateExerciseReps(text, index); }}
                   value={element.reps}
                 />
               </View>
@@ -123,6 +165,8 @@ export default class ExerciseSection extends React.Component {
                 spellCheck={false}
                 multiline
                 numberOfLines={3}
+                /* eslint-disable no-param-reassign */
+                onChangeText={(text) => { this.updateExerciseDesc(text, index); }}
                 value={element.description}
               />
             </View>
