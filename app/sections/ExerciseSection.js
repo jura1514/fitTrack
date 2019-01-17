@@ -4,8 +4,12 @@ import {
   View,
   Text,
   StyleSheet,
+  Alert,
+  TouchableOpacity,
 } from 'react-native';
+import { FontAwesome } from '@expo/vector-icons';
 import Devider from './Devider';
+import { deleteExecise } from '../services/ExerciseService';
 
 const styles = StyleSheet.create({
   textExerciseInput: {
@@ -35,6 +39,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginLeft: 7,
     fontWeight: 'bold',
+    marginRight: 'auto',
   },
   textAddInfoTitle: {
     fontSize: 12,
@@ -57,6 +62,18 @@ const styles = StyleSheet.create({
   exerciseBox: {
     flex: 1.2,
   },
+  iconPosition: {
+    textAlign: 'right',
+    marginLeft: 'auto',
+  },
+  deleteBtn: {
+    display: 'none',
+  },
+  binIcon: {
+    width: 25,
+    height: 25,
+    color: 'red',
+  },
 });
 
 export default class ExerciseSection extends React.Component {
@@ -67,6 +84,32 @@ export default class ExerciseSection extends React.Component {
 
   componentWillReceiveProps(newProps) {
     this.setState({ exercises: newProps.exercises });
+  }
+
+  deleteExerciseCLicked = async (dayId) => {
+    Alert.alert(
+      'Alert',
+      'Are you sure you want to delete this exercise?',
+      [
+        { text: 'Cancel', onPress: () => null, style: 'cancel' },
+        { text: 'OK', onPress: () => this.deleteExerciseCall(dayId) },
+      ],
+      { cancelable: false },
+    );
+  };
+
+  deleteExerciseCall = async (id) => {
+    try {
+      await deleteExecise(id);
+      // eslint-disable-next-line
+      const exercisesCopy = this.state.exercises;
+      const index = exercisesCopy.findIndex(i => i.id === id);
+      exercisesCopy.splice(index, 1);
+      // this.setState({ exercises: exercisesCopy });
+      this.props.onDeleteAction(exercisesCopy);
+    } catch (e) {
+      Alert.alert('Error', `Could not delete an exercise. Reason:${e}`);
+    }
   }
 
   updateExerciseName = (text, index) => {
@@ -85,7 +128,7 @@ export default class ExerciseSection extends React.Component {
 
   updateExerciseReps = (text, index) => {
     // eslint-disable-next-line
-    const exercisesCopy = this.state.exercises;
+    const exercisesCopy = this.props.exercises;
     exercisesCopy[index].reps = text;
     this.setState({ exercises: exercisesCopy });
   };
@@ -108,9 +151,17 @@ export default class ExerciseSection extends React.Component {
         {this.state.exercises.map((element, index) => {
           return (
             <View style={styles.exerciseContainer}>
-              <Text style={styles.textExerciseNumber}>
-                { index + 1 }
-              </Text>
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={styles.textExerciseNumber}>
+                  { index + 1 }
+                </Text>
+                <TouchableOpacity
+                  style={!element.id ? styles.deleteBtn : styles.iconPosition}
+                  onPress={() => this.deleteExerciseCLicked(element.id)}
+                >
+                  <FontAwesome name="trash-o" size={25} style={styles.binIcon} />
+                </TouchableOpacity>
+              </View>
               <View style={styles.exerciseRow}>
                 <Text style={[styles.textExerciseTitle]}>
                   { 'Exercise Name:' }

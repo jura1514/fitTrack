@@ -145,7 +145,7 @@ export default class WorkoutList extends React.Component {
       this.props.navigation.setParams({ selectedWorkout: '' });
       this.loadData();
     } catch (e) {
-      Alert.alert('Error', `Could delete a workout. Reason:${e}`);
+      Alert.alert('Error', `Could not delete a workout. Reason:${e}`);
     }
   }
 

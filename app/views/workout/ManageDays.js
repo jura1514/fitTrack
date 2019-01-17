@@ -8,6 +8,7 @@ import {
   Dimensions,
   TextInput,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import ActionButton from 'react-native-action-button';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
@@ -18,7 +19,7 @@ import Loading from '../../sections/Loading';
 import ExerciseSection from '../../sections/ExerciseSection';
 import Devider from '../../sections/Devider';
 import {
-  getDays, addDayToDb, updateDayDb,
+  getDays, addDayToDb, updateDayDb, deleteDay,
 } from '../../services/DayService';
 import { getExercises, addExerciseToDb, updateExerciseDb } from '../../services/ExerciseService';
 
@@ -211,6 +212,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  nameTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginLeft: 25,
+    flex: 0.9,
+  },
+  iconPosition: {
+    flex: 0.1,
+    textAlign: 'right',
+  },
+  deleteBtn: {
+    display: 'none',
+  },
+  binIcon: {
+    width: 25,
+    height: 25,
+    color: 'red',
   },
 });
 
@@ -463,6 +483,35 @@ class ManageDays extends Component {
     return updateExerciseDb(e.id, e.name, e.sets, e.reps, e.description);
   };
 
+  deleteDayCLicked = async (dayId) => {
+    Alert.alert(
+      'Alert',
+      'Are you sure you want to delete this day?',
+      [
+        { text: 'Cancel', onPress: () => null, style: 'cancel' },
+        { text: 'OK', onPress: () => this.deleteDayCall(dayId) },
+      ],
+      { cancelable: false },
+    );
+  };
+
+  deleteDayCall = async (id) => {
+    try {
+      await deleteDay(id);
+      // eslint-disable-next-line
+      const daysCopy = this.state.days;
+      const index = daysCopy.findIndex(i => i.id === id);
+      daysCopy.splice(index, 1);
+      this.setState({ days: daysCopy });
+    } catch (e) {
+      Alert.alert('Error', `Could not delete a day. Reason:${e}`);
+    }
+  }
+
+  refreshExercisesOnDelete = (newExerciseArr) => {
+    this.setState({ exercises: newExerciseArr });
+  }
+
   getCurrentDayExercises = (day) => {
     const { exercises } = this.state;
 
@@ -495,7 +544,11 @@ class ManageDays extends Component {
 
     if (selectedDay.id === day.item.id) {
       return (
-        <ExerciseSection day={day} exercises={dayExercises} />
+        <ExerciseSection
+          day={day}
+          exercises={dayExercises}
+          onDeleteAction={this.refreshExercisesOnDelete}
+        />
       );
     }
 
@@ -525,9 +578,17 @@ class ManageDays extends Component {
   renderDays = (day) => {
     return (
       <View style={styles.dayDetailsContainer}>
-        <Text style={styles.textTitle}>
-          { 'Name' }
-        </Text>
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={styles.nameTitle}>
+            { 'Name' }
+          </Text>
+          <TouchableOpacity
+            style={!day.item.id ? styles.deleteBtn : styles.iconPosition}
+            onPress={() => this.deleteDayCLicked(day.item.id)}
+          >
+            <FontAwesome name="trash-o" size={25} style={styles.binIcon} />
+          </TouchableOpacity>
+        </View>
         <TextInput
           style={styles.textInput}
           placeholder="type day name"
