@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ScrollView,
   View,
   StyleSheet,
   Text,
@@ -9,11 +8,12 @@ import {
   TextInput,
   Alert,
   TouchableOpacity,
+  FlatList,
 } from 'react-native';
 import ActionButton from 'react-native-action-button';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
-import { ImagePicker } from 'expo';
-import moment from 'moment';
+import Modal from 'react-native-modal';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
 import Loading from '../../sections/Loading';
 import ExerciseSection from '../../sections/ExerciseSection';
@@ -21,159 +21,16 @@ import Devider from '../../sections/Devider';
 import {
   getDays, addDayToDb, updateDayDb, deleteDay,
 } from '../../services/DayService';
-import { getExercises, addExerciseToDb, updateExerciseDb } from '../../services/ExerciseService';
+import {
+  getExercises, addExerciseToDb, updateExerciseDb, deleteExecise,
+} from '../../services/ExerciseService';
 
 // caruousel settings
 const SliderWidth = Dimensions.get('screen').width;
 const SliderHeight = Dimensions.get('screen').height;
 const ItemWidth = 300.0;
 
-const data = [
-  {
-    name: 'day 1',
-    weekday: moment().weekday(0).format('dddd'),
-    exercises: [
-      {
-        name: 'bench press',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'barbell row',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'flyes',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'deadlifts',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Squats',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Pull ups',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Bycep curles',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-    ],
-  },
-  {
-    name: 'day 2',
-    weekday: moment().weekday(2).format('dddd'),
-    exercises: [
-      {
-        name: 'bench press',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'barbell row',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'flyes',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'deadlifts',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Squats',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Pull ups',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Bycep curles',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-    ],
-  },
-  {
-    name: 'day 3',
-    weekday: moment().weekday(4).format('dddd'),
-    exercises: [
-      {
-        name: 'bench press',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'barbell row',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'flyes',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'deadlifts',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Squats',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Pull ups',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-      {
-        name: 'Bycep curles',
-        sets: 5,
-        reps: 8,
-        description: 'Do as much as you can and as hard as you can, ye',
-      },
-    ],
-  },
-];
+const weekDaysArray = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const styles = StyleSheet.create({
   contentContainer: {
@@ -232,6 +89,28 @@ const styles = StyleSheet.create({
     height: 25,
     color: 'red',
   },
+  modalContent: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 22,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    borderRadius: 4,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  modalButton: {
+    height: 50,
+    backgroundColor: '#00b5ec',
+    borderColor: '#48BBEC',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 10,
+    borderRadius: 5,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontSize: 18,
+  },
 });
 
 class ManageDays extends Component {
@@ -251,13 +130,9 @@ class ManageDays extends Component {
       name: null,
       weekDay: null,
     },
-    defaultExercise: {
-      name: null,
-      sets: '0',
-      reps: '0',
-      description: null,
-    },
     refresh: false,
+    isModalVisible: false,
+    selectedModalDay: null,
   };
 
   componentDidMount() {
@@ -337,12 +212,17 @@ class ManageDays extends Component {
     const { exercises } = this.state;
     const { days } = this.state;
     const { carousel } = this.state;
-    const newExercise = this.state.defaultExercise;
+    const newExercise = {
+      name: null,
+      sets: '0',
+      reps: '0',
+      description: null,
+    };
 
     const selectedDay = days[carousel.currentIndex];
 
     if (selectedDay.id) {
-      // newExercise.index = exercises.length > 0 ? exercises.length + 1 : 1;
+      newExercise.index = exercises.length > 0 ? exercises.length + 1 : 1;
 
       newExercise.dayId = selectedDay.id;
 
@@ -373,7 +253,7 @@ class ManageDays extends Component {
           this.saveDays(days);
           this.saveExercises(exercises);
         } else {
-          Alert.alert('Error', `Please enter all mandaory fields for exercise ${exercises.indexOf(invalidExercise) + 1}`);
+          Alert.alert('Error', 'Please enter all mandaory fields for exercise(s)');
         }
       } else {
         this.saveDays(days);
@@ -413,6 +293,7 @@ class ManageDays extends Component {
     });
 
     Promise.all(promises).then(() => {
+      Alert.alert('Success', 'Day data saved.');
       this.refreshCarousel();
     });
   };
@@ -447,6 +328,7 @@ class ManageDays extends Component {
     });
 
     Promise.all(promises).then(() => {
+      Alert.alert('Success', 'Exercise(s) saved.');
       this.refreshCarousel();
     });
   };
@@ -461,7 +343,7 @@ class ManageDays extends Component {
 
   validExercises = (exercises) => {
     const invalidExercise = exercises.find((e) => {
-      return !e.name || !e.sets || !e.reps;
+      return !e.name || !e.sets || !e.reps || e.sets === 0 || e.reps === 0;
     });
 
     return invalidExercise;
@@ -497,6 +379,7 @@ class ManageDays extends Component {
 
   deleteDayCall = async (id) => {
     try {
+      await this.checkAndDeleteExercisesForDay(id);
       await deleteDay(id);
       // eslint-disable-next-line
       const daysCopy = this.state.days;
@@ -504,12 +387,51 @@ class ManageDays extends Component {
       daysCopy.splice(index, 1);
       this.setState({ days: daysCopy });
     } catch (e) {
-      Alert.alert('Error', `Could not delete a day. Reason:${e}`);
+      Alert.alert('Error', `Could not delete a day.\n Reason:${e}`);
     }
   }
 
-  refreshExercisesOnDelete = (newExerciseArr) => {
-    this.setState({ exercises: newExerciseArr });
+  checkAndDeleteExercisesForDay = async (id) => {
+    try {
+      const { exercises } = this.state;
+      const hasExercises = exercises.find(e => e.dayId === id);
+
+      if (hasExercises && typeof hasExercises !== 'undefined') {
+        const promises = [];
+
+        exercises.forEach((e) => {
+          if (e.dayId === id) {
+            const promise = new Promise((resolve, reject) => {
+              deleteExecise(e.id).then(() => {
+                resolve();
+              })
+                .catch((error) => {
+                  reject(error);
+                });
+            });
+
+            promises.push(promise);
+          }
+        });
+
+        Promise.all(promises);
+      }
+    } catch (e) {
+      Alert.alert('Error', `Could not clear exercise(s) for a day.\n Reason:${e}`);
+    }
+  }
+
+  exercisesOnDelete = async (id) => {
+    try {
+      await deleteExecise(id);
+      // eslint-disable-next-line
+      const exercisesCopy = this.state.exercises;
+      const index = exercisesCopy.findIndex(i => i.id === id);
+      exercisesCopy.splice(index, 1);
+      this.setState({ exercises: exercisesCopy });
+    } catch (e) {
+      Alert.alert('Error', `Could not delete an exercise.\n Reason:${e}`);
+    }
   }
 
   getCurrentDayExercises = (day) => {
@@ -526,16 +448,6 @@ class ManageDays extends Component {
     return exercises;
   }
 
-  pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      base64: true,
-    });
-    if (!result.cancelled) {
-      this.setState(prevState => ({ images: prevState.images.push(result.uri) }));
-    }
-  };
-
   renderExercises = (day) => {
     const { days } = this.state;
     const { carousel } = this.state;
@@ -547,7 +459,7 @@ class ManageDays extends Component {
         <ExerciseSection
           day={day}
           exercises={dayExercises}
-          onDeleteAction={this.refreshExercisesOnDelete}
+          onDeleteAction={this.exercisesOnDelete}
         />
       );
     }
@@ -569,7 +481,13 @@ class ManageDays extends Component {
     const index = daysCopy.findIndex(i => i.id === day.item.id);
     daysCopy[index].weekDay = text;
     this.setState({ days: daysCopy });
+    this.toggleModal();
   };
+
+  toggleModal = (selectedModalDay) => {
+    this.setState({ selectedModalDay });
+    this.setState(prevState => ({ isModalVisible: !prevState.isModalVisible }));
+  }
 
   refreshCarousel() {
     this.setState(prevState => ({ refresh: !prevState.refresh }));
@@ -599,13 +517,32 @@ class ManageDays extends Component {
         <Text style={styles.textTitle}>
           { 'Weekday' }
         </Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="select week day"
-          spellCheck={false}
-          onChangeText={(text) => { this.updateWeekDay(text, day); }}
-          value={day.item.weekDay}
-        />
+        <TouchableOpacity onPress={() => this.toggleModal(day)} style={styles.textInput}>
+          <Text>{day.item.weekDay ? day.item.weekDay : 'Show Modal'}</Text>
+        </TouchableOpacity>
+        <Modal
+          isVisible={this.state.isModalVisible}
+          onBackdropPress={() => this.setState({ isModalVisible: false })}
+        >
+          <View style={styles.modalContent}>
+            <FlatList
+              key="id"
+              data={weekDaysArray}
+              extraData={this.state}
+              keyExtractor={item => item.item}
+              renderItem={(weekDay) => {
+                return (
+                  <TouchableOpacity
+                    style={styles.modalButton}
+                    onPress={() => this.updateWeekDay(weekDay.item, this.state.selectedModalDay)}
+                  >
+                    <Text style={styles.modalButtonText}>{String(weekDay.item)}</Text>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          </View>
+        </Modal>
         <Devider />
         {this.renderExercises(day)}
       </View>
@@ -624,22 +561,26 @@ class ManageDays extends Component {
       <View
         style={this.props.loading ? styles.loadingContainer : styles.container}
       >
-        <ScrollView contentContainerStyle={styles.contentContainer}>
-          <View behavior="position" keyboardVerticalOffset={50}>
-            <Carousel
-              ref={(c) => { this.state.carousel = c; }}
-              data={this.state.days}
-              extraData={this.state.refresh}
-              // firstItem={FirstItem}
-              itemWidth={ItemWidth}
-              sliderWidth={SliderWidth}
-              sliderHeight={SliderHeight}
-              activeSlideAlignment="center"
-              renderItem={this.renderDays}
-              onSnapToItem={index => this.setState({ activeSlide: index })}
-            />
-          </View>
-        </ScrollView>
+        <KeyboardAwareScrollView
+          enableAutomaticScroll
+          enableOnAndroid
+          extraScrollHeight={100}
+          extraHeight={100}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <Carousel
+            ref={(c) => { this.state.carousel = c; }}
+            data={this.state.days}
+            extraData={this.state.refresh}
+            // firstItem={FirstItem}
+            itemWidth={ItemWidth}
+            sliderWidth={SliderWidth}
+            sliderHeight={SliderHeight}
+            activeSlideAlignment="center"
+            renderItem={this.renderDays}
+            onSnapToItem={index => this.setState({ activeSlide: index })}
+          />
+        </KeyboardAwareScrollView>
         <ActionButton buttonColor="#00b5ec">
           <ActionButton.Item
             buttonColor="rgba(231,76,60,1)"

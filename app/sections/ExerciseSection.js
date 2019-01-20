@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import Devider from './Devider';
-import { deleteExecise } from '../services/ExerciseService';
 
 const styles = StyleSheet.create({
   textExerciseInput: {
@@ -86,31 +85,17 @@ export default class ExerciseSection extends React.Component {
     this.setState({ exercises: newProps.exercises });
   }
 
-  deleteExerciseCLicked = async (dayId) => {
+  deleteExerciseClicked = async (exerciseId) => {
     Alert.alert(
       'Alert',
       'Are you sure you want to delete this exercise?',
       [
         { text: 'Cancel', onPress: () => null, style: 'cancel' },
-        { text: 'OK', onPress: () => this.deleteExerciseCall(dayId) },
+        { text: 'OK', onPress: () => this.props.onDeleteAction(exerciseId) },
       ],
       { cancelable: false },
     );
   };
-
-  deleteExerciseCall = async (id) => {
-    try {
-      await deleteExecise(id);
-      // eslint-disable-next-line
-      const exercisesCopy = this.state.exercises;
-      const index = exercisesCopy.findIndex(i => i.id === id);
-      exercisesCopy.splice(index, 1);
-      // this.setState({ exercises: exercisesCopy });
-      this.props.onDeleteAction(exercisesCopy);
-    } catch (e) {
-      Alert.alert('Error', `Could not delete an exercise. Reason:${e}`);
-    }
-  }
 
   updateExerciseName = (text, index) => {
     // eslint-disable-next-line
@@ -157,7 +142,7 @@ export default class ExerciseSection extends React.Component {
                 </Text>
                 <TouchableOpacity
                   style={!element.id ? styles.deleteBtn : styles.iconPosition}
-                  onPress={() => this.deleteExerciseCLicked(element.id)}
+                  onPress={() => this.deleteExerciseClicked(element.id)}
                 >
                   <FontAwesome name="trash-o" size={25} style={styles.binIcon} />
                 </TouchableOpacity>

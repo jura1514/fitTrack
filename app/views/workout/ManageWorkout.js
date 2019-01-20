@@ -77,6 +77,9 @@ const styles = StyleSheet.create({
     marginRight: 7,
     paddingLeft: 10,
   },
+  displayNone: {
+    display: 'none',
+  },
 });
 
 class ManageWorkout extends Component {
@@ -107,7 +110,7 @@ class ManageWorkout extends Component {
 
     if (workoutId) {
       this.loadData(workoutId);
-      this.setState({ btnText: 'Edit' });
+      this.setState({ btnText: 'Save' });
     } else {
       this.setState({ btnText: 'Add' });
     }
@@ -163,6 +166,13 @@ class ManageWorkout extends Component {
     }
   };
 
+  handleAddEditDaysPress = () => {
+    const workoutId = this.props.navigation.getParam('wourkoutId', null);
+    this.props.navigation.navigate('ManageDaysRT', {
+      wourkoutId: workoutId,
+    });
+  };
+
   createOrUpdateWorkout = () => {
     this.setState({ numberOfDays: 5 });
     if (this.state.workoutRecord) {
@@ -173,11 +183,8 @@ class ManageWorkout extends Component {
         this.state.numberOfDays,
         this.state.makeActive,
       ).then(() => {
-        Alert.alert('Success', 'Workout updated');
-        // this.props.navigation.goBack();
-        this.props.navigation.navigate('ManageDaysRT', {
-          wourkoutId: workoutId,
-        });
+        Alert.alert('Success', 'Workout saved.');
+        this.props.navigation.goBack();
       })
         .catch((error) => {
           Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
@@ -247,6 +254,12 @@ class ManageWorkout extends Component {
           </View>
         </View>
         {this.renderError()}
+        <TouchableHighlight
+          style={this.state.workoutRecord ? styles.button : styles.displayNone}
+          onPress={this.handleAddEditDaysPress}
+        >
+          <Text style={styles.buttonText}>Add/Edit Days</Text>
+        </TouchableHighlight>
         <TouchableHighlight
           onPress={this.handleAddEditPress}
           disabled={this.state.name.length === 0 || this.state.error}
