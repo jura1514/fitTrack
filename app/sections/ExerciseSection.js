@@ -101,28 +101,28 @@ export default class ExerciseSection extends React.Component {
     // eslint-disable-next-line
     const exercisesCopy = this.state.exercises;
     exercisesCopy[index].name = text;
-    this.setState({ exercises: exercisesCopy });
+    this.setState({ exercises: exercisesCopy }, () => this.props.exerciseChanged());
   };
 
   updateExerciseSets = (text, index) => {
     // eslint-disable-next-line
     const exercisesCopy = this.state.exercises;
     exercisesCopy[index].sets = text;
-    this.setState({ exercises: exercisesCopy });
+    this.setState({ exercises: exercisesCopy }, () => this.props.exerciseChanged());
   };
 
   updateExerciseReps = (text, index) => {
     // eslint-disable-next-line
     const exercisesCopy = this.props.exercises;
     exercisesCopy[index].reps = text;
-    this.setState({ exercises: exercisesCopy });
+    this.setState({ exercises: exercisesCopy }, () => this.props.exerciseChanged());
   };
 
   updateExerciseDesc = (text, index) => {
     // eslint-disable-next-line
     const exercisesCopy = this.state.exercises;
     exercisesCopy[index].description = text;
-    this.setState({ exercises: exercisesCopy });
+    this.setState({ exercises: exercisesCopy }, () => this.props.exerciseChanged());
   };
 
   render() {

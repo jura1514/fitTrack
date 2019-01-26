@@ -8,7 +8,7 @@ export const getCurrentUser = () => {
 
 export const deleteWorkout = (id) => { db.database().ref(`Workouts/${id}`).set({}); };
 
-export const addWorkoutToDb = (name, numberOfDays, isActive) => {
+export const addWorkoutToDb = (name, isActive) => {
   const creationTime = moment().format('YYYY-MM-DD HH:mm');
   const user = getCurrentUser();
   const { email } = user;
@@ -18,7 +18,6 @@ export const addWorkoutToDb = (name, numberOfDays, isActive) => {
     .ref('/Workouts')
     .push({
       name,
-      numberOfDays,
       isActive,
       email,
       creationTime,
@@ -33,12 +32,11 @@ export const addWorkoutToDb = (name, numberOfDays, isActive) => {
     });
 };
 
-export const updateWorkout = (id, name, numberOfDays, isActive) => db
+export const updateWorkout = (id, name, isActive) => db
   .database()
   .ref(`/Workouts/${id}`)
   .update({
     name,
-    numberOfDays,
     isActive,
   })
   .then((data) => {

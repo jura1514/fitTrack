@@ -93,7 +93,6 @@ class ManageWorkout extends Component {
 
   state = {
     name: '',
-    numberOfDays: null,
     makeActive: false,
     error: '',
     btnText: '',
@@ -123,7 +122,6 @@ class ManageWorkout extends Component {
       const workoutRecord = snapshot.val();
       this.setState({ workoutRecord });
       this.setState({ name: workoutRecord.name });
-      this.setState({ numberOfDays: workoutRecord.numberOfDays });
       this.setState({ makeActive: workoutRecord.isActive });
       this.setState({ loading: false });
     } else {
@@ -133,23 +131,6 @@ class ManageWorkout extends Component {
 
   setWorkoutName = (name) => {
     this.setState({ name });
-  };
-
-  handleDaysInput = (days) => {
-    if (days !== '') {
-      if (Number.parseInt(days, 10)) {
-        this.setState({ numberOfDays: days });
-        if (days <= 7) {
-          this.setState({ error: '' });
-        } else {
-          this.setState({ error: 'Number of days in workout cannot exceed 7.' });
-        }
-      } else {
-        this.setState({ error: 'Not a valid number entered in days field.' });
-      }
-    } else {
-      this.setState({ numberOfDays: days });
-    }
   };
 
   handleAddEditPress = async () => {
@@ -174,13 +155,11 @@ class ManageWorkout extends Component {
   };
 
   createOrUpdateWorkout = () => {
-    this.setState({ numberOfDays: 5 });
     if (this.state.workoutRecord) {
       const workoutId = this.props.navigation.getParam('wourkoutId', null);
       updateWorkout(
         workoutId,
         this.state.name,
-        this.state.numberOfDays,
         this.state.makeActive,
       ).then(() => {
         Alert.alert('Success', 'Workout saved.');
@@ -190,7 +169,7 @@ class ManageWorkout extends Component {
           Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
         });
     } else {
-      addWorkoutToDb(this.state.name, this.state.numberOfDays, this.state.makeActive)
+      addWorkoutToDb(this.state.name, this.state.makeActive)
         .then(() => {
           Alert.alert('Success', 'Workout added');
           this.props.navigation.navigate('ManageDaysRT');

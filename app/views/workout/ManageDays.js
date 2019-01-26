@@ -15,6 +15,7 @@ import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
+import { StackActions, NavigationActions } from 'react-navigation';
 import Loading from '../../sections/Loading';
 import ExerciseSection from '../../sections/ExerciseSection';
 import Devider from '../../sections/Devider';
@@ -126,13 +127,11 @@ class ManageDays extends Component {
     workoutId: null,
     days: [],
     exercises: [],
-    defaultDay: {
-      name: null,
-      weekDay: null,
-    },
     refresh: false,
     isModalVisible: false,
     selectedModalDay: null,
+    exerciseDataChanged: false,
+    dayDataChanged: false,
   };
 
   componentDidMount() {
@@ -221,45 +220,69 @@ class ManageDays extends Component {
 
     const selectedDay = days[carousel.currentIndex];
 
-    if (selectedDay.id) {
-      newExercise.index = exercises.length > 0 ? exercises.length + 1 : 1;
+    if (selectedDay) {
+      if (selectedDay.id) {
+        newExercise.index = exercises.length > 0 ? exercises.length + 1 : 1;
 
-      newExercise.dayId = selectedDay.id;
+        newExercise.dayId = selectedDay.id;
 
-      exercises.push(newExercise);
-      this.refreshCarousel();
+        exercises.push(newExercise);
+        this.exerciseChanged();
+        this.refreshCarousel();
+      } else {
+        Alert.alert('Error', 'Save day data first');
+      }
     } else {
-      Alert.alert('Error', 'Save day data first');
+      Alert.alert('Error', 'Add and save day first');
     }
+  };
+
+  backToWorkoutList = () => {
+    this.props.navigation.pop(2);
   };
 
   addNewDay = () => {
     const { days } = this.state;
-    const newDay = this.state.defaultDay;
+    const unsavedDay = days.find(e => !e.id);
 
-    days.push(newDay);
-    this.refreshCarousel();
-    this.state.carousel.snapToNext();
+    if (!unsavedDay || days.length === 0) {
+      const newDay = {
+        name: null,
+        weekDay: null,
+      };
+
+      days.push(newDay);
+      this.dayChanged();
+      this.refreshCarousel();
+      this.state.carousel.snapToNext();
+    } else {
+      Alert.alert('Error', 'Save existing day before adding a new one.');
+    }
   };
 
   saveData = () => {
     const { days } = this.state;
     const { exercises } = this.state;
-
-    if (this.validDay(days)) {
-      if (exercises.length > 0) {
-        const invalidExercise = this.validExercises(exercises);
-        if (!invalidExercise) {
-          this.saveDays(days);
-          this.saveExercises(exercises);
+    if (days.length > 0) {
+      if (this.validDay(days)) {
+        if (exercises.length > 0) {
+          const invalidExercise = this.validExercises(exercises);
+          if (!invalidExercise) {
+            if (this.state.dayDataChanged) {
+              this.saveDays(days);
+            }
+            if (this.state.exerciseDataChanged) {
+              this.saveExercises(exercises);
+            }
+          } else {
+            Alert.alert('Error', 'Please enter all mandaory fields for exercise(s)');
+          }
         } else {
-          Alert.alert('Error', 'Please enter all mandaory fields for exercise(s)');
+          this.saveDays(days);
         }
       } else {
-        this.saveDays(days);
+        Alert.alert('Error', 'Please enter all fields for day');
       }
-    } else {
-      Alert.alert('Error', 'Please enter all fields for day');
     }
   };
 
@@ -448,6 +471,18 @@ class ManageDays extends Component {
     return exercises;
   }
 
+  exerciseChanged = () => {
+    if (!this.state.exerciseDataChanged) {
+      this.setState({ exerciseDataChanged: true });
+    }
+  }
+
+  dayChanged = () => {
+    if (!this.state.dayDataChanged) {
+      this.setState({ dayDataChanged: true });
+    }
+  }
+
   renderExercises = (day) => {
     const { days } = this.state;
     const { carousel } = this.state;
@@ -460,6 +495,7 @@ class ManageDays extends Component {
           day={day}
           exercises={dayExercises}
           onDeleteAction={this.exercisesOnDelete}
+          exerciseChanged={this.exerciseChanged}
         />
       );
     }
@@ -472,7 +508,7 @@ class ManageDays extends Component {
     const daysCopy = this.state.days;
     const index = daysCopy.findIndex(i => i.id === day.item.id);
     daysCopy[index].name = text;
-    this.setState({ days: daysCopy });
+    this.setState({ days: daysCopy }, () => this.dayChanged());
   };
 
   updateWeekDay = (text, day) => {
@@ -480,7 +516,7 @@ class ManageDays extends Component {
     const daysCopy = this.state.days;
     const index = daysCopy.findIndex(i => i.id === day.item.id);
     daysCopy[index].weekDay = text;
-    this.setState({ days: daysCopy });
+    this.setState({ days: daysCopy }, () => this.dayChanged());
     this.toggleModal();
   };
 
@@ -518,7 +554,7 @@ class ManageDays extends Component {
           { 'Weekday' }
         </Text>
         <TouchableOpacity onPress={() => this.toggleModal(day)} style={styles.textInput}>
-          <Text>{day.item.weekDay ? day.item.weekDay : 'Show Modal'}</Text>
+          <Text>{day.item.weekDay ? day.item.weekDay : 'Select day of the week'}</Text>
         </TouchableOpacity>
         <Modal
           isVisible={this.state.isModalVisible}
@@ -602,6 +638,13 @@ class ManageDays extends Component {
             onPress={() => this.addNewExercise()}
           >
             <MaterialIcons name="playlist-add" size={25} />
+          </ActionButton.Item>
+          <ActionButton.Item
+            buttonColor="#D5D8DC"
+            title="Back to Workouts"
+            onPress={() => this.backToWorkoutList()}
+          >
+            <FontAwesome name="list-ul" size={25} />
           </ActionButton.Item>
         </ActionButton>
         { this.pagination }

@@ -56,6 +56,9 @@ const MyRoutes = createStackNavigator(
     ForgotRT: {
       screen: Forgot,
     },
+    WorkoutListRT: {
+      screen: WorkoutList,
+    },
     ManageWorkoutRT: {
       screen: ManageWorkout,
     },

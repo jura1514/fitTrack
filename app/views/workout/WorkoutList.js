@@ -14,6 +14,9 @@ import { FontAwesome } from '@expo/vector-icons';
 import WorkoutListItem from './WorkoutListItem';
 import db from '../../config/firebase';
 import { getWorkouts, deleteWorkout } from '../../services/WorkoutService';
+import {
+  getDays,
+} from '../../services/DayService';
 import Loading from '../../sections/Loading';
 
 const styles = StyleSheet.create({
@@ -119,10 +122,44 @@ export default class WorkoutList extends React.Component {
         newObj.id = key;
         workoutsArray.push(newObj);
       }
-      this.setState({ workouts: workoutsArray });
+      this.getDays(workoutsArray);
+
       this.setState({ loading: false });
     } else {
       this.setState({ workouts: workoutsArray });
+      this.setState({ loading: false });
+    }
+  }
+
+  getDays = async (workouts) => {
+    if (workouts.length > 0) {
+      this.setState({ loading: true });
+      const workoutsWithDaysCount = [];
+
+      const promise = new Promise((resolve) => {
+        let counter = 0;
+        workouts.forEach(async (e) => {
+          const snapshot = await getDays(e.id);
+          if (snapshot.val()) {
+            const daysLength = Object.keys(snapshot.val()).length;
+            e.daysLength = daysLength;
+          } else {
+            e.daysLength = 0;
+          }
+          counter += 1;
+          workoutsWithDaysCount.push(e);
+
+          if (counter === workouts.length) {
+            resolve();
+          }
+        });
+      });
+
+      promise.then(() => {
+        this.setState({ workouts: workoutsWithDaysCount });
+      }).catch(() => {
+        Alert.alert('Ups', 'Something went wrong.\nPlease refresh the screen.');
+      });
       this.setState({ loading: false });
     }
   }
@@ -202,12 +239,14 @@ export default class WorkoutList extends React.Component {
       <FlatList
         key="id"
         data={this.state.workouts}
+        onRefresh={() => this.loadData()}
+        refreshing={this.state.loading}
         extraData={this.state}
         style={styles.list}
         keyExtractor={item => item.id}
         renderItem={(item) => {
           const workout = item.item;
-          const daysTitle = `has ${workout.numberOfDays} days`;
+          const daysTitle = `has ${workout.daysLength} days`;
           const createTitle = `created on: ${workout.creationTime}`;
           let nameTitle = workout.name;
           if (workout.isActive) {
