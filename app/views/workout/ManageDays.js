@@ -15,7 +15,6 @@ import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Carousel, { Pagination } from 'react-native-snap-carousel';
-import { StackActions, NavigationActions } from 'react-navigation';
 import Loading from '../../sections/Loading';
 import ExerciseSection from '../../sections/ExerciseSection';
 import Devider from '../../sections/Devider';
