@@ -80,6 +80,7 @@ const MyRoutes = createStackNavigator(
 // eslint-disable-next-line react/prefer-stateless-function
 class App extends React.Component {
   render() {
+    console.disableYellowBox = true;
     return <MyRoutes />;
   }
 }
