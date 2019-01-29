@@ -67,6 +67,60 @@ const styles = StyleSheet.create({
     width: '50%',
     textAlign: 'center',
   },
+  exerciseContainer: {
+    margin: 10,
+    borderWidth: 2,
+    borderColor: '#00b5ec',
+  },
+  textExerciseTitle: {
+    fontSize: 12,
+    fontWeight: 'normal',
+    marginTop: 6,
+    textAlign: 'center',
+    flex: 1,
+  },
+  exerciseRow: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  textAddInfoTitle: {
+    fontSize: 12,
+    fontWeight: 'normal',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    textDecorationLine: 'underline',
+  },
+  additionalInfoContent: {
+    margin: 0,
+    marginLeft: 7,
+    marginRight: 7,
+    marginBottom: 10,
+    paddingLeft: 10,
+  },
+  textExerciseContent: {
+    marginRight: 15,
+    paddingLeft: 5,
+  },
+  exerciseBox: {
+    flex: 1.2,
+  },
+  textExerciseNumber: {
+    color: '#00b5ec',
+    fontSize: 20,
+    textAlign: 'left',
+    marginLeft: 7,
+    fontWeight: 'bold',
+    marginRight: 'auto',
+  },
+  flexRow: {
+    flexDirection: 'row',
+  },
+  textTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
 });
 
 export default class Home extends React.Component {
@@ -177,7 +231,6 @@ export default class Home extends React.Component {
       await this.getExercisesForDays(daysArray.map(e => e.id));
 
       this.setState({ days: daysArray });
-
       this.findSetCurrentDay(this.state.currentWeekDayName);
     } else {
       this.setState({ days: daysArray });
@@ -185,32 +238,55 @@ export default class Home extends React.Component {
   }
 
   getExercisesForDays = async (dayIds) => {
-    const exercisesArray = [];
-    if (dayIds.length > 0) {
-      await dayIds.forEach(async (e) => {
-        const snapshot = await getExercises(e);
-        if (snapshot.val()) {
-          // eslint-disable-next-line
-          for (let key in snapshot.val()) {
-            const newObj = snapshot.val()[key];
-            newObj.id = key;
-            exercisesArray.push(newObj);
+    return new Promise(async (resolve) => {
+      const exercisesArray = [];
+      if (dayIds.length > 0) {
+        let counter = 0;
+        dayIds.forEach(async (e) => {
+          const snapshot = await getExercises(e);
+          if (snapshot.val()) {
+            // eslint-disable-next-line
+            for (let key in snapshot.val()) {
+              const newObj = snapshot.val()[key];
+              newObj.id = key;
+              exercisesArray.push(newObj);
+            }
           }
-        }
-      });
+          counter += 1;
 
-      this.setState({ exercises: exercisesArray });
-    }
+          if (counter === dayIds.length) {
+            this.setState({ exercises: exercisesArray });
+            resolve(true);
+          }
+        });
+      } else {
+        resolve(true);
+      }
+    });
   };
 
   findSetCurrentDay = (currentWeekDayName) => {
     const { days } = this.state;
+    const { exercises } = this.state;
     const foundDay = days.find(day => day.weekDay === currentWeekDayName);
 
     if (foundDay) {
       this.setState({ currentDay: foundDay });
+
+      const foundExercises = [];
+      if (exercises && exercises.length > 0) {
+        exercises.forEach((e) => {
+          if (e.dayId === foundDay.id) {
+            foundExercises.push(e);
+          }
+        });
+        this.setState({ currentDayExercises: foundExercises });
+      }
+
+      this.setState({ currentDayExercises: foundExercises });
     } else {
       this.setState({ currentDay: null });
+      this.setState({ currentDayExercises: [] });
     }
   }
 
@@ -259,58 +335,61 @@ export default class Home extends React.Component {
     if (currentDay) {
       return (
         <View>
-          <Text style={styles.textTitle}>{currentDay.name}</Text>
+          <Text style={styles.textTitle}>
+            { `Exercises at: ${currentDay.name}` }
+          </Text>
+          <Devider />
           <FlatList
             key="id"
             data={this.state.currentDayExercises}
             extraData={this.state}
             style={styles.list}
             keyExtractor={item => item.id}
-            renderItem={(item, index) => {
+            renderItem={(item) => {
+              const { index } = item;
               const exercise = item.item;
               return (
-                <Text>{exercise.name}</Text>
-                // <View style={styles.exerciseContainer}>
-                //   <View style={{ flexDirection: 'row' }}>
-                //     <Text style={styles.textExerciseNumber}>
-                //       { index + 1 }
-                //     </Text>
-                //   </View>
-                //   <View style={styles.exerciseRow}>
-                //     <Text style={[styles.textExerciseTitle]}>
-                //       { 'Exercise Name:' }
-                //     </Text>
-                //     <Text
-                //       style={[styles.textExerciseInput, styles.exerciseBox]}
-                //     >
-                //       { 'Text goes here'}
-                //     </Text>
-                //   </View>
-                //   <View style={styles.exerciseRow}>
-                //     <Text style={[styles.textExerciseTitle]}>
-                //       { 'Number of Sets:' }
-                //     </Text>
-                //     <Text
-                //       style={[styles.textExerciseInput, styles.exerciseBox]}
-                //     >
-                //       { 'Text goes here'}
-                //     </Text>
-                //   </View>
-                //   <View style={styles.exerciseRow}>
-                //     <Text style={[styles.textExerciseTitle]}>
-                //       { 'Number of Reps:' }
-                //     </Text>
-                //     <Text
-                //       style={[styles.textExerciseInput, styles.exerciseBox]}
-                //     >
-                //       { 'Text goes here'}
-                //     </Text>
-                //   </View>
-                //   <Text style={styles.textAddInfoTitle}>
-                //     { 'Additional Info' }
-                //   </Text>
-                //   <Text style={styles.additionalInfoInput}>Text goes here</Text>
-                // </View>
+                <View style={styles.exerciseContainer}>
+                  <View style={styles.flexRow}>
+                    <Text style={styles.textExerciseNumber}>
+                      { index + 1 }
+                    </Text>
+                  </View>
+                  <View style={styles.exerciseRow}>
+                    <Text style={[styles.textExerciseTitle]}>
+                      { 'Exercise Name:' }
+                    </Text>
+                    <Text
+                      style={[styles.textExerciseContent, styles.exerciseBox]}
+                    >
+                      {exercise.name}
+                    </Text>
+                  </View>
+                  <View style={styles.exerciseRow}>
+                    <Text style={[styles.textExerciseTitle]}>
+                      { 'Number of Sets:' }
+                    </Text>
+                    <Text
+                      style={[styles.textExerciseContent, styles.exerciseBox]}
+                    >
+                      {exercise.sets}
+                    </Text>
+                  </View>
+                  <View style={styles.exerciseRow}>
+                    <Text style={[styles.textExerciseTitle]}>
+                      { 'Number of Reps:' }
+                    </Text>
+                    <Text
+                      style={[styles.textExerciseContent, styles.exerciseBox]}
+                    >
+                      {exercise.reps}
+                    </Text>
+                  </View>
+                  <Text style={styles.textAddInfoTitle}>
+                    { 'Additional Info' }
+                  </Text>
+                  <Text style={styles.additionalInfoContent}>{exercise.description}</Text>
+                </View>
               );
             }}
           />

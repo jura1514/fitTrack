@@ -73,6 +73,9 @@ const styles = StyleSheet.create({
     height: 25,
     color: 'red',
   },
+  flexRow: {
+    flexDirection: 'row',
+  },
 });
 
 export default class ExerciseSection extends React.Component {
@@ -136,7 +139,7 @@ export default class ExerciseSection extends React.Component {
         {this.state.exercises.map((element, index) => {
           return (
             <View style={styles.exerciseContainer}>
-              <View style={{ flexDirection: 'row' }}>
+              <View style={styles.flexRow}>
                 <Text style={styles.textExerciseNumber}>
                   { index + 1 }
                 </Text>
