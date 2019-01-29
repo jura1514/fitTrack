@@ -1,6 +1,6 @@
 import React from 'react';
 import { createStackNavigator, createDrawerNavigator } from 'react-navigation';
-
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import Splash from './app/views/Splash';
 import Login from './app/views/Login';
 import Home from './app/views/Home';
@@ -29,9 +29,19 @@ const WorkoutListStack = createStackNavigator(
 const MyDrawerRoutes = createDrawerNavigator({
   Home: {
     screen: HomeStack,
+    navigationOptions: {
+      drawerIcon: () => (
+        <FontAwesome name="home" size={25} />
+      ),
+    },
   },
-  Workout: {
+  Workouts: {
     screen: WorkoutListStack,
+    navigationOptions: {
+      drawerIcon: () => (
+        <MaterialCommunityIcons name="dumbbell" size={25} />
+      ),
+    },
   },
 }, {
   drawerPosition: 'Left',
