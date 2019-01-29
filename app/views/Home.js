@@ -334,7 +334,8 @@ export default class Home extends React.Component {
     const { currentDay } = this.state;
     if (currentDay) {
       return (
-        <View>
+        // eslint-disable-next-line
+        <View style={{ flex: 1 }}>
           <Text style={styles.textTitle}>
             { `Exercises at: ${currentDay.name}` }
           </Text>
