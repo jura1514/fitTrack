@@ -9,6 +9,7 @@ import Forgot from './app/views/Forgot';
 import ManageWorkout from './app/views/workout/ManageWorkout';
 import ManageDays from './app/views/workout/ManageDays';
 import WorkoutList from './app/views/workout/WorkoutList';
+import DrawerContent from './app/sections/DrawerContent';
 
 const HomeStack = createStackNavigator(
   {
@@ -34,6 +35,7 @@ const MyDrawerRoutes = createDrawerNavigator({
   },
 }, {
   drawerPosition: 'Left',
+  contentComponent: DrawerContent,
 });
 
 const MyRoutes = createStackNavigator(
