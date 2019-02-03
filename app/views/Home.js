@@ -12,6 +12,7 @@ import {
   Text,
   Picker,
 } from 'react-native';
+import { connect } from 'react-redux';
 import { FontAwesome } from '@expo/vector-icons';
 import db from '../config/firebase';
 import { getWorkouts } from '../services/WorkoutService';
@@ -23,6 +24,7 @@ import {
 import {
   getExercises,
 } from '../services/ExerciseService';
+import { loadActiveWorkout } from '../actions/index';
 
 const styles = StyleSheet.create({
   imagestyle: {
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class Home extends React.Component {
+class Home extends React.Component {
   static navigationOptions = ({ navigation }) => {
     const { params = {} } = navigation.state;
     return {
@@ -146,8 +148,6 @@ export default class Home extends React.Component {
   };
 
   state = {
-    activeWorkout: null,
-    days: [],
     exercises: [],
     loading: false,
     currentWeekDayName: moment().format('dddd'),
@@ -175,7 +175,9 @@ export default class Home extends React.Component {
   };
 
   didFocus = () => {
-    this.loadData();
+    this.props.loadActiveWorkout();
+
+    // this.loadData();
     this.setBackButtonListener();
     this.props.navigation.setParams({ handleLogOut: this.logoutUser });
   }
@@ -186,10 +188,10 @@ export default class Home extends React.Component {
 
   loadData = async () => {
     this.setState({ loading: true });
-    const foundActiveWorkout = await this.loadActiveWorkout();
+    // const foundActiveWorkout = await this.loadActiveWorkout();
 
-    if (foundActiveWorkout) {
-      this.loadWorkoutDays(foundActiveWorkout.id);
+    if (this.state.activeWorkout) {
+      this.loadWorkoutDays(this.state.activeWorkout.id);
     }
 
     this.setState({ loading: false });
@@ -425,6 +427,15 @@ export default class Home extends React.Component {
     ];
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    activeWorkout: state.activeWorkout,
+    days: state.days,
+  };
+};
+
+export default connect(mapStateToProps, { loadActiveWorkout })(Home);
 
 Home.propTypes = {
   navigation: PropTypes.shape({

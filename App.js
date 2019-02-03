@@ -1,6 +1,9 @@
 import React from 'react';
 import { createStackNavigator, createDrawerNavigator } from 'react-navigation';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Provider } from 'react-redux';
+import { createStore, applyMiddleware } from 'redux';
+import Thunk from 'redux-thunk';
 import Splash from './app/views/Splash';
 import Login from './app/views/Login';
 import Home from './app/views/Home';
@@ -10,6 +13,14 @@ import ManageWorkout from './app/views/workout/ManageWorkout';
 import ManageDays from './app/views/workout/ManageDays';
 import WorkoutList from './app/views/workout/WorkoutList';
 import DrawerContent from './app/sections/DrawerContent';
+import reducers from './app/reducers/WorkoutReducer';
+
+const store = createStore(
+  reducers,
+  // eslint-disable-next-line no-underscore-dangle
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
+  applyMiddleware(Thunk),
+);
 
 const HomeStack = createStackNavigator(
   {
@@ -93,7 +104,11 @@ const MyRoutes = createStackNavigator(
 class App extends React.Component {
   render() {
     console.disableYellowBox = true;
-    return <MyRoutes />;
+    return (
+      <Provider store={store}>
+        <MyRoutes />
+      </Provider>
+    );
   }
 }
 
