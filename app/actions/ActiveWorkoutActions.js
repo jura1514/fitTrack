@@ -36,7 +36,7 @@ export const loadDayExercises = (activeWorkout, days, id) => {
 
 
 export const loadWorkoutDays = (activeWorkout) => {
-  return (dispatch) => {
+  function loadWorkoutDaysThunk(dispatch) {
     firebase
       .database()
       .ref('/Days')
@@ -87,14 +87,20 @@ export const loadWorkoutDays = (activeWorkout) => {
       .catch(() => {
         dispatch({ type: actionTypes.getActiveDataFetchDaysErr, activeWorkout });
       });
+  }
+
+  loadWorkoutDaysThunk.interceptInOffline = true;
+  loadWorkoutDaysThunk.meta = {
+    retry: true,
   };
+  return loadWorkoutDaysThunk;
 };
 
 
 export const loadActiveData = () => {
   const { currentUser } = firebase.auth();
 
-  return (dispatch) => {
+  function loadActiveDataThunk(dispatch) {
     firebase
       .database()
       .ref('/Workouts')
@@ -128,5 +134,11 @@ export const loadActiveData = () => {
       .catch(() => {
         dispatch({ type: actionTypes.getActiveDataFetchWorkoutErr });
       });
+  }
+
+  loadActiveDataThunk.interceptInOffline = true;
+  loadActiveDataThunk.meta = {
+    retry: true,
   };
+  return loadActiveDataThunk;
 };

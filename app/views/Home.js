@@ -11,6 +11,7 @@ import {
   Image,
   Text,
   Picker,
+  Button,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { FontAwesome } from '@expo/vector-icons';
@@ -18,6 +19,10 @@ import db from '../config/firebase';
 import Loading from '../sections/Loading';
 import Devider from '../sections/Devider';
 import { loadActiveData } from '../actions/ActiveWorkoutActions';
+import OfflineQueue from '../sections/OfflineQueue';
+
+const onlineUrl = 'https://www.google.com/';
+const offlineUrl = 'https://www.weifhweopfhwioehfiwoephfpweoifhewifhpewoif.com';
 
 const styles = StyleSheet.create({
   imagestyle: {
@@ -319,7 +324,21 @@ class Home extends React.Component {
     if (this.props.error) {
       Alert.alert('Error', `${this.props.error}\nPlease reload the screen`);
     }
+
+    if (this.props.isConnected) {
+      Alert.alert('Alert', `Network Status: ${this.props.isConnected}`);
+    }
   }
+
+  // toggleConnection = () => {
+  //   this.setState(prevState => ({
+  //     network: {
+  //       ...prevState.network,
+  //       pingUrl:
+  //         prevState.network.pingUrl === onlineUrl ? offlineUrl : onlineUrl,
+  //     },
+  //   }));
+  // }
 
   render() {
     this.alertUserOnError();
@@ -328,6 +347,14 @@ class Home extends React.Component {
         <View
           style={this.props.loading ? styles.loadingContainer : styles.container}
         >
+          {/* <View style={{ marginBottom: 20 }}>
+            <Button
+              onPress={() => this.toggleConnection()}
+              title="Toggle Internet connection"
+              color="#841584"
+            />
+          </View> */}
+          <OfflineQueue title="Offline Queue (FIFO), throttle = 1s" />
           {this.renderFilterPanel()}
           <Devider />
           {this.renderContent()}
@@ -350,11 +377,12 @@ class Home extends React.Component {
 
 const mapStateToProps = (state) => {
   return {
-    activeWorkout: state.activeWorkout,
-    days: state.days,
-    exercises: state.exercises,
-    loading: state.loading,
-    error: state.error,
+    activeWorkout: state.reducers.activeWorkout,
+    days: state.reducers.days,
+    exercises: state.reducers.exercises,
+    loading: state.reducers.loading,
+    error: state.reducers.error,
+    isConnected: state.network.isConnected,
   };
 };
 

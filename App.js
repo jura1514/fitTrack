@@ -2,7 +2,12 @@ import React from 'react';
 import { createStackNavigator, createDrawerNavigator } from 'react-navigation';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Provider } from 'react-redux';
-import { createStore, applyMiddleware } from 'redux';
+import { createStore, applyMiddleware, combineReducers } from 'redux';
+import {
+  reducer as network,
+  ReduxNetworkProvider,
+  createNetworkMiddleware,
+} from 'react-native-offline';
 import Thunk from 'redux-thunk';
 import Splash from './app/views/Splash';
 import Login from './app/views/Login';
@@ -15,11 +20,21 @@ import WorkoutList from './app/views/workout/WorkoutList';
 import DrawerContent from './app/sections/DrawerContent';
 import reducers from './app/reducers/ActiveWorkoutReducer';
 
-const store = createStore(
+const rootReducer = combineReducers({
   reducers,
+  network,
+});
+
+const networkMiddleware = createNetworkMiddleware();
+
+const store = createStore(
+  rootReducer,
   // eslint-disable-next-line no-underscore-dangle
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
-  applyMiddleware(Thunk),
+  applyMiddleware(
+    networkMiddleware,
+    Thunk,
+  ),
 );
 
 const HomeStack = createStackNavigator(
@@ -106,7 +121,9 @@ class App extends React.Component {
     console.disableYellowBox = true;
     return (
       <Provider store={store}>
-        <MyRoutes />
+        <ReduxNetworkProvider>
+          <MyRoutes />
+        </ReduxNetworkProvider>
       </Provider>
     );
   }
