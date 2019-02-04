@@ -1,13 +1,11 @@
-// import {
-//   Alert,
-// } from 'react-native';
 import firebase from '../config/firebase';
-// const actionTypes = {
-//   : 'INITIAL_FETCH',
-//   : 'ACTIVE_DATA_FETCH',
-//   GetInviteRequested: 'ACTIVE_WORKOUT_FETCH',
-//   GetInviteRejected: 'DAYS_FETCH',
-// };
+
+const actionTypes = {
+  getActiveDataFetch: 'ACTIVE_DATA_FETCH',
+  getActiveDataFetchExercisesErr: 'ACTIVE_DATA_FETCH_EXERCISES_ERR',
+  getActiveDataFetchDaysErr: 'ACTIVE_DATA_FETCH_DAYS_ERR',
+  getActiveDataFetchWorkoutErr: 'ACTIVE_DATA_FETCH_WORKOUT_ERR',
+};
 
 export const loadDayExercises = (activeWorkout, days, id) => {
   return new Promise((resolve, reject) => {
@@ -65,14 +63,14 @@ export const loadWorkoutDays = (activeWorkout) => {
             const allExercises = [].concat(...data);
 
             dispatch({
-              type: 'ACTIVE_DATA_FETCH',
+              type: actionTypes.getActiveDataFetch,
               activeWorkout,
               days: daysWithIds,
               exercises: allExercises,
             });
           }).catch(() => {
             dispatch({
-              type: 'ACTIVE_DATA_FETCH_EXERCISES_ERR',
+              type: actionTypes.getActiveDataFetchExercisesErr,
               activeWorkout,
               days: daysWithIds,
               exercises: [],
@@ -80,14 +78,14 @@ export const loadWorkoutDays = (activeWorkout) => {
           });
         }
         dispatch({
-          type: 'ACTIVE_DATA_FETCH',
+          type: actionTypes.getActiveDataFetch,
           activeWorkout,
           days: [],
           exercises: [],
         });
       })
       .catch(() => {
-        dispatch({ type: 'ACTIVE_DATA_FETCH_DAYS_ERR', activeWorkout });
+        dispatch({ type: actionTypes.getActiveDataFetchDaysErr, activeWorkout });
       });
   };
 };
@@ -121,14 +119,14 @@ export const loadActiveData = () => {
         }
 
         dispatch({
-          type: 'ACTIVE_DATA_FETCH',
+          type: actionTypes.getActiveDataFetch,
           activeWorkout: null,
           days: [],
           exercises: [],
         });
       })
       .catch(() => {
-        dispatch({ type: 'ACTIVE_DATA_FETCH_WORKOUT_ERR' });
+        dispatch({ type: actionTypes.getActiveDataFetchWorkoutErr });
       });
   };
 };
