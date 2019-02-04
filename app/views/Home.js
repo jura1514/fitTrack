@@ -15,16 +15,9 @@ import {
 import { connect } from 'react-redux';
 import { FontAwesome } from '@expo/vector-icons';
 import db from '../config/firebase';
-import { getWorkouts } from '../services/WorkoutService';
 import Loading from '../sections/Loading';
 import Devider from '../sections/Devider';
-import {
-  getDays,
-} from '../services/DayService';
-import {
-  getExercises,
-} from '../services/ExerciseService';
-import { loadActiveWorkout } from '../actions/index';
+import { loadActiveData } from '../actions/ActiveWorkoutActions';
 
 const styles = StyleSheet.create({
   imagestyle: {
@@ -148,8 +141,6 @@ class Home extends React.Component {
   };
 
   state = {
-    exercises: [],
-    loading: false,
     currentWeekDayName: moment().format('dddd'),
     currentDay: null,
     currentDayExercises: [],
@@ -175,9 +166,8 @@ class Home extends React.Component {
   };
 
   didFocus = () => {
-    this.props.loadActiveWorkout();
+    this.props.loadActiveData();
 
-    // this.loadData();
     this.setBackButtonListener();
     this.props.navigation.setParams({ handleLogOut: this.logoutUser });
   }
@@ -186,90 +176,9 @@ class Home extends React.Component {
     BackHandler.removeEventListener('backPress', this.handleBackButton);
   }
 
-  loadData = async () => {
-    this.setState({ loading: true });
-    // const foundActiveWorkout = await this.loadActiveWorkout();
-
-    if (this.state.activeWorkout) {
-      this.loadWorkoutDays(this.state.activeWorkout.id);
-    }
-
-    this.setState({ loading: false });
-  }
-
-  loadActiveWorkout = () => {
-    return new Promise(async (resolve) => {
-      const snapshot = await getWorkouts();
-      if (snapshot.val()) {
-        let activeWorkout = null;
-
-        // eslint-disable-next-line
-        for (let key in snapshot.val()) {
-          const newObj = snapshot.val()[key];
-          if (newObj.isActive) {
-            newObj.id = key;
-            // it can only be 1 active workout
-            activeWorkout = newObj;
-            break;
-          }
-        }
-
-        this.setState({ activeWorkout });
-        resolve(activeWorkout);
-      }
-    });
-  }
-
-  loadWorkoutDays = async (workoutId) => {
-    const daysArray = [];
-    const snapshot = await getDays(workoutId);
-    if (snapshot.val()) {
-      // eslint-disable-next-line
-      for (let key in snapshot.val()) {
-        const newObj = snapshot.val()[key];
-        newObj.id = key;
-        daysArray.push(newObj);
-      }
-      await this.getExercisesForDays(daysArray.map(e => e.id));
-
-      this.setState({ days: daysArray });
-      this.findSetCurrentDay(this.state.currentWeekDayName);
-    } else {
-      this.setState({ days: daysArray });
-    }
-  }
-
-  getExercisesForDays = async (dayIds) => {
-    return new Promise(async (resolve) => {
-      const exercisesArray = [];
-      if (dayIds.length > 0) {
-        let counter = 0;
-        dayIds.forEach(async (e) => {
-          const snapshot = await getExercises(e);
-          if (snapshot.val()) {
-            // eslint-disable-next-line
-            for (let key in snapshot.val()) {
-              const newObj = snapshot.val()[key];
-              newObj.id = key;
-              exercisesArray.push(newObj);
-            }
-          }
-          counter += 1;
-
-          if (counter === dayIds.length) {
-            this.setState({ exercises: exercisesArray });
-            resolve(true);
-          }
-        });
-      } else {
-        resolve(true);
-      }
-    });
-  };
-
   findSetCurrentDay = (currentWeekDayName) => {
-    const { days } = this.state;
-    const { exercises } = this.state;
+    const { days } = this.props;
+    const { exercises } = this.props;
     const foundDay = days.find(day => day.weekDay === currentWeekDayName);
 
     if (foundDay) {
@@ -304,8 +213,8 @@ class Home extends React.Component {
   handleBackButton = () => true;
 
   renderLoading = () => {
-    if (this.state.loading) {
-      return <Loading key="loader" animating={this.state.loading} />;
+    if (this.props.loading) {
+      return <Loading key="loader" animating={this.props.loading} />;
     }
     return null;
   }
@@ -406,8 +315,15 @@ class Home extends React.Component {
     );
   }
 
+  alertUserOnError = () => {
+    if (this.props.error) {
+      Alert.alert('Error', `${this.props.error}\nPlease reload the screen`);
+    }
+  }
+
   render() {
-    if (this.state.activeWorkout !== null && typeof this.state.activeWorkout !== 'undefined') {
+    this.alertUserOnError();
+    if (this.props.activeWorkout !== null && typeof this.props.activeWorkout !== 'undefined') {
       return (
         <View
           style={this.props.loading ? styles.loadingContainer : styles.container}
@@ -419,12 +335,16 @@ class Home extends React.Component {
         </View>
       );
     }
-    return [
-      <View style={styles.noActive}>
-        <Text style={styles.noActiveText}>No ACTIVE workouts</Text>
-      </View>,
-      this.renderLoading(),
-    ];
+    return (
+      <View
+        style={this.props.loading ? styles.loadingContainer : styles.noActive}
+      >
+        <Text style={styles.noActiveText}>
+          {!this.props.loading ? 'No ACTIVE workouts' : ''}
+        </Text>
+        {this.renderLoading()}
+      </View>
+    );
   }
 }
 
@@ -432,10 +352,13 @@ const mapStateToProps = (state) => {
   return {
     activeWorkout: state.activeWorkout,
     days: state.days,
+    exercises: state.exercises,
+    loading: state.loading,
+    error: state.error,
   };
 };
 
-export default connect(mapStateToProps, { loadActiveWorkout })(Home);
+export default connect(mapStateToProps, { loadActiveData })(Home);
 
 Home.propTypes = {
   navigation: PropTypes.shape({

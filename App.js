@@ -13,7 +13,7 @@ import ManageWorkout from './app/views/workout/ManageWorkout';
 import ManageDays from './app/views/workout/ManageDays';
 import WorkoutList from './app/views/workout/WorkoutList';
 import DrawerContent from './app/sections/DrawerContent';
-import reducers from './app/reducers/WorkoutReducer';
+import reducers from './app/reducers/ActiveWorkoutReducer';
 
 const store = createStore(
   reducers,
