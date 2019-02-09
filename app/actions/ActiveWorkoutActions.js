@@ -142,3 +142,47 @@ export const loadActiveData = () => {
   };
   return loadActiveDataThunk;
 };
+
+
+export const addWorkoutAction = () => {
+  const name = 'workout';
+  const isActive = false;
+  const creationTime = '1993-07-03';
+  const { currentUser } = firebase.auth();
+  const { email } = currentUser;
+
+  function addWorkoutThunk(dispatch) {
+    firebase
+      .database()
+      .ref('/Workouts')
+      .push({
+        name,
+        isActive,
+        email,
+        creationTime,
+      })
+      .then((data) => {
+      // success callback
+        console.log('data ', data);
+        dispatch({ type: 'WORKOUT_ADDED', payload: data });
+      })
+      .catch((error) => {
+        console.log('error ', error);
+      });
+  }
+
+  addWorkoutThunk.interceptInOffline = true;
+  addWorkoutThunk.meta = {
+    retry: true,
+  };
+  return addWorkoutThunk;
+};
+// const getUUID = () => new Date().getUTCMilliseconds();
+
+// export const addWorkoutAction = () => ({
+//   type: 'WORKOUT_ADDED',
+//   payload: getUUID(),
+//   meta: {
+//     retry: true,
+//   },
+// });
