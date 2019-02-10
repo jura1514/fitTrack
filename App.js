@@ -13,10 +13,10 @@ import ManageWorkout from './app/views/workout/ManageWorkout';
 import ManageDays from './app/views/workout/ManageDays';
 import WorkoutList from './app/views/workout/WorkoutList';
 import DrawerContent from './app/sections/DrawerContent';
-import reducers from './app/reducers/ActiveWorkoutReducer';
+import rootReducer from './app/reducers/rootReducer';
 
 const store = createStore(
-  reducers,
+  rootReducer,
   // eslint-disable-next-line no-underscore-dangle
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__(),
   applyMiddleware(Thunk),

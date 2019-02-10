@@ -9,15 +9,17 @@ import {
   View,
   Image,
 } from 'react-native';
+import { connect } from 'react-redux';
 import ActionButton from 'react-native-action-button';
 import { FontAwesome } from '@expo/vector-icons';
 import WorkoutListItem from './WorkoutListItem';
 import db from '../../config/firebase';
-import { getWorkouts, deleteWorkout } from '../../services/WorkoutService';
-import {
-  getDays,
-} from '../../services/DayService';
 import Loading from '../../sections/Loading';
+import {
+  loadWorkoutsData,
+  loadWorkoutDays,
+  deleteWorkoutAction,
+} from '../../actions/WorkoutActions';
 
 const styles = StyleSheet.create({
   imagestyle: {
@@ -45,7 +47,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class WorkoutList extends React.Component {
+class WorkoutList extends React.Component {
   static navigationOptions = ({ navigation }) => {
     const { params = {} } = navigation.state;
     const id = params.selectedWorkout ? params.selectedWorkout : '';
@@ -72,15 +74,14 @@ export default class WorkoutList extends React.Component {
   };
 
   state = {
-    workouts: [],
-    loading: false,
+    workoutsWithDays: [],
     isSelected: false,
     selectedId: '',
   };
 
   componentDidMount() {
-    this.didFocusListener = this.props.navigation.addListener('didFocus', this.didFocus);
-    this.didBlurListener = this.props.navigation.addListener('didBlur', this.didBlur);
+    this.didFocusListener = this.props.navigation.addListener('didFocus', () => this.didFocus());
+    this.didBlurListener = this.props.navigation.addListener('didBlur', () => this.didBlur());
   }
 
   componentWillUnmount() {
@@ -111,57 +112,26 @@ export default class WorkoutList extends React.Component {
     BackHandler.removeEventListener('backPress', this.handleBackButton);
   }
 
-  loadData = async () => {
-    this.setState({ loading: true });
-    const workoutsArray = [];
-    const snapshot = await getWorkouts();
-    if (snapshot.val()) {
-      // eslint-disable-next-line
-      for (let key in snapshot.val()) {
-        const newObj = snapshot.val()[key];
-        newObj.id = key;
-        workoutsArray.push(newObj);
-      }
-      this.getDays(workoutsArray);
+  loadData = () => {
+    this.props.loadWorkoutsData()
+      .then(() => {
+        if (this.props.workouts && Array.isArray(this.props.workouts)) {
+          const workoutsWithDays = [];
+          let counter = 0;
+          this.props.workouts.forEach((workout) => {
+            this.props.loadWorkoutDays(workout.id)
+              .then((length) => {
+                workout.numberOfDays = length; // eslint-disable-line no-param-reassign
+                workoutsWithDays.push(workout);
+                counter += 1;
 
-      this.setState({ loading: false });
-    } else {
-      this.setState({ workouts: workoutsArray });
-      this.setState({ loading: false });
-    }
-  }
-
-  getDays = async (workouts) => {
-    if (workouts.length > 0) {
-      this.setState({ loading: true });
-      const workoutsWithDaysCount = [];
-
-      const promise = new Promise((resolve) => {
-        let counter = 0;
-        workouts.forEach(async (e) => {
-          const snapshot = await getDays(e.id);
-          if (snapshot.val()) {
-            const daysLength = Object.keys(snapshot.val()).length;
-            e.daysLength = daysLength;
-          } else {
-            e.daysLength = 0;
-          }
-          counter += 1;
-          workoutsWithDaysCount.push(e);
-
-          if (counter === workouts.length) {
-            resolve();
-          }
-        });
+                if (counter === this.props.workouts.length) {
+                  this.setState({ workoutsWithDays });
+                }
+              });
+          });
+        }
       });
-
-      promise.then(() => {
-        this.setState({ workouts: workoutsWithDaysCount });
-      }).catch(() => {
-        Alert.alert('Ups', 'Something went wrong.\nPlease refresh the screen.');
-      });
-      this.setState({ loading: false });
-    }
   }
 
   handleDeleteWorkout = async (id) => {
@@ -170,20 +140,16 @@ export default class WorkoutList extends React.Component {
       'Are you sure you want to delete this workout?',
       [
         { text: 'Cancel', onPress: () => null, style: 'cancel' },
-        { text: 'OK', onPress: () => this.deleteWorkout(id) },
+        { text: 'OK', onPress: () => this.processDeleteWorkout(id) },
       ],
       { cancelable: false },
     );
   };
 
-  deleteWorkout = async (id) => {
-    try {
-      await deleteWorkout(id);
-      this.props.navigation.setParams({ selectedWorkout: '' });
+  processDeleteWorkout = (id) => {
+    this.props.deleteWorkoutAction(id).then(() => {
       this.loadData();
-    } catch (e) {
-      Alert.alert('Error', `Could not delete a workout. Reason:${e}`);
-    }
+    });
   }
 
   setBackButtonListener = () => {
@@ -193,8 +159,8 @@ export default class WorkoutList extends React.Component {
   handleBackButton = () => true;
 
   renderLoading = () => {
-    if (this.state.loading) {
-      return <Loading key="loader" animating={this.state.loading} />;
+    if (this.props.loading) {
+      return <Loading key="loader" animating={this.props.loading} />;
     }
     return null;
   }
@@ -234,19 +200,26 @@ export default class WorkoutList extends React.Component {
     return false;
   }
 
+  alertUserOnError = () => {
+    if (this.props.error) {
+      Alert.alert('Error', `${this.props.error}\nPlease reload the screen`);
+    }
+  }
+
   render() {
     return [
+      this.alertUserOnError(),
       <FlatList
         key="id"
-        data={this.state.workouts}
+        data={this.state.workoutsWithDays}
         onRefresh={() => this.loadData()}
-        refreshing={this.state.loading}
+        refreshing={this.props.loading}
         extraData={this.state}
         style={styles.list}
         keyExtractor={item => item.id}
         renderItem={(item) => {
           const workout = item.item;
-          const daysTitle = `has ${workout.daysLength} days`;
+          const daysTitle = `has ${workout.numberOfDays} days`;
           const createTitle = `created on: ${workout.creationTime}`;
           let nameTitle = workout.name;
           if (workout.isActive) {
@@ -275,6 +248,21 @@ export default class WorkoutList extends React.Component {
     ];
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    workouts: state.workout.workouts,
+    days: state.workout.days,
+    loading: state.workout.loading,
+    error: state.workout.error,
+  };
+};
+
+export default connect(mapStateToProps, {
+  loadWorkoutsData,
+  loadWorkoutDays,
+  deleteWorkoutAction,
+})(WorkoutList);
 
 WorkoutList.propTypes = {
   navigation: PropTypes.shape({

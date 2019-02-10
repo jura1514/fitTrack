@@ -6,8 +6,20 @@ const initialState = {
   error: '',
 };
 
-export default (state = initialState, action) => {
+const activeWorkoutReducer = (state = initialState, action) => {
   switch (action.type) {
+    case 'FIND_ACTIVE_WORKOUT':
+      return {
+        ...state,
+        activeWorkout: action.payload,
+      };
+
+    case 'FIND_ACTIVE_WORKOUT_ERROR':
+      return {
+        ...state,
+        error: 'Could not get active workout',
+      };
+
     case 'ACTIVE_DATA_FETCH':
       return {
         ...state,
@@ -45,3 +57,5 @@ export default (state = initialState, action) => {
       return state;
   }
 };
+
+export default activeWorkoutReducer;

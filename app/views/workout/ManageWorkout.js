@@ -9,10 +9,20 @@ import {
   Switch,
   Alert,
 } from 'react-native';
+import { connect } from 'react-redux';
 import Loading from '../../sections/Loading';
 import {
-  getWorkouts, updateWorkout, addWorkoutToDb, getWorkout,
+  updateWorkout, addWorkoutToDb,
 } from '../../services/WorkoutService';
+import {
+  loadWorkoutData,
+  setLoading,
+  setWorkoutName,
+  setWorkoutActiveState,
+} from '../../actions/WorkoutActions';
+import {
+  findActiveWorkout,
+} from '../../actions/ActiveWorkoutActions';
 
 
 const styles = StyleSheet.create({
@@ -92,52 +102,30 @@ class ManageWorkout extends Component {
   };
 
   state = {
-    name: '',
-    makeActive: false,
     error: '',
     btnText: '',
-    loading: false,
-    workoutRecord: null,
   };
 
   componentDidMount() {
-    this.didFocusListener = this.props.navigation.addListener('didFocus', this.didFocus);
+    this.didFocusListener = this.props.navigation.addListener('didFocus', () => this.didFocus());
   }
 
   didFocus = () => {
     const workoutId = this.props.navigation.getParam('wourkoutId', null);
 
     if (workoutId) {
-      this.loadData(workoutId);
+      this.props.setLoading(true);
+      this.props.loadWorkoutData(workoutId, true);
+      this.props.findActiveWorkout();
       this.setState({ btnText: 'Save' });
     } else {
       this.setState({ btnText: 'Add' });
     }
   }
 
-  loadData = async (id) => {
-    this.setState({ loading: true });
-    const snapshot = await getWorkout(id);
-    if (snapshot.val()) {
-      const workoutRecord = snapshot.val();
-      this.setState({ workoutRecord });
-      this.setState({ name: workoutRecord.name });
-      this.setState({ makeActive: workoutRecord.isActive });
-      this.setState({ loading: false });
-    } else {
-      this.setState({ loading: false });
-    }
-  }
-
-  setWorkoutName = (name) => {
-    this.setState({ name });
-  };
-
   handleAddEditPress = async () => {
-    if (this.state.makeActive && !this.state.workoutRecord.isActive) {
-      const hasActive = await this.hasActiveWorkout();
-
-      if (hasActive) {
+    if (this.props.makeActive && !this.props.workoutRecord.isActive) {
+      if (this.props.activeWorkout) {
         Alert.alert('Error', 'Cannot have multiple active workouts.');
       } else {
         this.createOrUpdateWorkout();
@@ -155,12 +143,12 @@ class ManageWorkout extends Component {
   };
 
   createOrUpdateWorkout = () => {
-    if (this.state.workoutRecord) {
+    if (this.props.workoutRecord) {
       const workoutId = this.props.navigation.getParam('wourkoutId', null);
       updateWorkout(
         workoutId,
-        this.state.name,
-        this.state.makeActive,
+        this.props.name,
+        this.props.makeActive,
       ).then(() => {
         Alert.alert('Success', 'Workout saved.');
         this.props.navigation.goBack();
@@ -169,7 +157,7 @@ class ManageWorkout extends Component {
           Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
         });
     } else {
-      addWorkoutToDb(this.state.name, this.state.makeActive)
+      addWorkoutToDb(this.props.name, this.props.makeActive)
         .then(() => {
           Alert.alert('Success', 'Workout added');
           this.props.navigation.navigate('ManageDaysRT');
@@ -180,22 +168,6 @@ class ManageWorkout extends Component {
     }
   };
 
-  hasActiveWorkout = async () => {
-    let hasActive = false;
-    const snapshot = await getWorkouts();
-    if (snapshot.val()) {
-      // eslint-disable-next-line
-      for (let key in snapshot.val()) {
-        const workout = snapshot.val()[key];
-        if (workout.isActive) {
-          hasActive = true;
-        }
-      }
-    }
-
-    return hasActive;
-  };
-
   renderError = () => {
     if (this.state.error) {
       return <Text style={styles.errorPassword}>{this.state.error}</Text>;
@@ -204,8 +176,8 @@ class ManageWorkout extends Component {
   };
 
   renderLoading = () => {
-    if (this.state.loading) {
-      return <Loading key="loader" animating={this.state.loading} />;
+    if (this.props.loading) {
+      return <Loading key="loader" animating={this.props.loading} />;
     }
     return null;
   };
@@ -218,32 +190,32 @@ class ManageWorkout extends Component {
         <View style={styles.fieldContainer}>
           <TextInput
             style={styles.text}
-            onChangeText={name => this.setState({ name })}
+            onChangeText={(name) => { this.props.setWorkoutName(name); }}
             placeholder="Name"
             spellCheck={false}
-            value={this.state.name}
+            value={this.props.name}
           />
           <View style={styles.switchView}>
             <Text style={styles.switchTitle}>Make this workout Active?</Text>
             <Switch
               style={styles.switch}
-              onValueChange={value => this.setState({ makeActive: value })}
-              value={this.state.makeActive}
+              onValueChange={(value) => { this.props.setWorkoutActiveState(value); }}
+              value={this.props.makeActive}
             />
           </View>
         </View>
         {this.renderError()}
         <TouchableHighlight
-          style={this.state.workoutRecord ? styles.button : styles.displayNone}
+          style={this.props.workoutRecord ? styles.button : styles.displayNone}
           onPress={this.handleAddEditDaysPress}
         >
           <Text style={styles.buttonText}>Add/Edit Days</Text>
         </TouchableHighlight>
         <TouchableHighlight
           onPress={this.handleAddEditPress}
-          disabled={this.state.name.length === 0 || this.state.error}
+          disabled={(this.props.name && this.props.name.length === 0) || this.state.error}
           style={
-            this.state.name.length === 0 || this.state.error
+            (this.props.name && this.props.name.length === 0) || this.state.error
               ? styles.disabledBtn
               : styles.button}
         >
@@ -257,7 +229,25 @@ class ManageWorkout extends Component {
   }
 }
 
-export default ManageWorkout;
+const mapStateToProps = (state) => {
+  return {
+    workoutRecord: state.workout.foundWorkout,
+    name: state.workout.workoutName,
+    makeActive: state.workout.workoutActiveState,
+    loading: state.workout.loading,
+    fetchError: state.workout.error,
+    activeWorkout: state.activeWorkout.activeWorkout,
+  };
+};
+
+export default connect(mapStateToProps, {
+  loadWorkoutData,
+  setLoading,
+  setWorkoutName,
+  setWorkoutActiveState,
+  findActiveWorkout,
+})(ManageWorkout);
+
 
 ManageWorkout.propTypes = {
   navigation: PropTypes.shape({

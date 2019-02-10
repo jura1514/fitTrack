@@ -147,8 +147,8 @@ class Home extends React.Component {
   };
 
   componentDidMount() {
-    this.didFocusListener = this.props.navigation.addListener('didFocus', this.didFocus);
-    this.didBlurListener = this.props.navigation.addListener('didBlur', this.didBlur);
+    this.didFocusListener = this.props.navigation.addListener('didFocus', () => this.didFocus());
+    this.didBlurListener = this.props.navigation.addListener('didBlur', () => this.didBlur());
   }
 
   componentWillUnmount() {
@@ -350,11 +350,11 @@ class Home extends React.Component {
 
 const mapStateToProps = (state) => {
   return {
-    activeWorkout: state.activeWorkout,
-    days: state.days,
-    exercises: state.exercises,
-    loading: state.loading,
-    error: state.error,
+    activeWorkout: state.activeWorkout.activeWorkout,
+    days: state.activeWorkout.days,
+    exercises: state.activeWorkout.exercises,
+    loading: state.activeWorkout.loading,
+    error: state.activeWorkout.error,
   };
 };
 

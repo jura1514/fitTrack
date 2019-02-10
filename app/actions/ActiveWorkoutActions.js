@@ -1,6 +1,8 @@
 import firebase from '../config/firebase';
 
 const actionTypes = {
+  findActiveWorkout: 'FIND_ACTIVE_WORKOUT',
+  findActiveWorkoutError: 'FIND_ACTIVE_WORKOUT_ERROR',
   getActiveDataFetch: 'ACTIVE_DATA_FETCH',
   getActiveDataFetchExercisesErr: 'ACTIVE_DATA_FETCH_EXERCISES_ERR',
   getActiveDataFetchDaysErr: 'ACTIVE_DATA_FETCH_DAYS_ERR',
@@ -33,7 +35,6 @@ export const loadDayExercises = (activeWorkout, days, id) => {
       });
   });
 };
-
 
 export const loadWorkoutDays = (activeWorkout) => {
   return (dispatch) => {
@@ -90,7 +91,6 @@ export const loadWorkoutDays = (activeWorkout) => {
   };
 };
 
-
 export const loadActiveData = () => {
   const { currentUser } = firebase.auth();
 
@@ -127,6 +127,29 @@ export const loadActiveData = () => {
       })
       .catch(() => {
         dispatch({ type: actionTypes.getActiveDataFetchWorkoutErr });
+      });
+  };
+};
+
+export const findActiveWorkout = () => {
+  const { currentUser } = firebase.auth();
+
+  return (dispatch) => {
+    firebase
+      .database()
+      .ref('/Workouts')
+      .orderByChild('email')
+      .equalTo(currentUser.email)
+      .once('value', (snapshot) => {
+        const workouts = Object.entries(snapshot.val());
+        const active = workouts.find(w => w.find(e => e.isActive));
+        dispatch({
+          type: actionTypes.findActiveWorkout,
+          payload: active,
+        });
+      })
+      .catch(() => {
+        dispatch({ type: actionTypes.findActiveWorkoutError });
       });
   };
 };

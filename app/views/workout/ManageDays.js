@@ -134,7 +134,7 @@ class ManageDays extends Component {
   };
 
   componentDidMount() {
-    this.didFocusListener = this.props.navigation.addListener('didFocus', this.didFocus);
+    this.didFocusListener = this.props.navigation.addListener('didFocus', () => this.didFocus());
   }
 
   get pagination() {
