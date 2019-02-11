@@ -24,6 +24,7 @@ import {
 import {
   getExercises, addExerciseToDb, updateExerciseDb, deleteExecise,
 } from '../../services/ExerciseService';
+import OfflineNotice from '../../sections/OfflineNotice';
 
 // caruousel settings
 const SliderWidth = Dimensions.get('screen').width;
@@ -596,6 +597,7 @@ class ManageDays extends Component {
       <View
         style={this.props.loading ? styles.loadingContainer : styles.container}
       >
+        <OfflineNotice />
         <KeyboardAwareScrollView
           enableAutomaticScroll
           enableOnAndroid

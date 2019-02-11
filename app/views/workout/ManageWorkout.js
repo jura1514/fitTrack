@@ -23,6 +23,7 @@ import {
 import {
   findActiveWorkout,
 } from '../../actions/ActiveWorkoutActions';
+import OfflineNotice from '../../sections/OfflineNotice';
 
 
 const styles = StyleSheet.create({
@@ -187,6 +188,7 @@ class ManageWorkout extends Component {
       <View
         style={this.props.loading ? styles.loadingContainer : styles.container}
       >
+        <OfflineNotice />
         <View style={styles.fieldContainer}>
           <TextInput
             style={styles.text}

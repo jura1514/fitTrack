@@ -20,6 +20,7 @@ import {
   loadWorkoutDays,
   deleteWorkoutAction,
 } from '../../actions/WorkoutActions';
+import OfflineNotice from '../../sections/OfflineNotice';
 
 const styles = StyleSheet.create({
   imagestyle: {
@@ -209,6 +210,7 @@ class WorkoutList extends React.Component {
   render() {
     return [
       this.alertUserOnError(),
+      <OfflineNotice />,
       <FlatList
         key="id"
         data={this.state.workoutsWithDays}

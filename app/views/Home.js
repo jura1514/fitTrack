@@ -18,6 +18,7 @@ import db from '../config/firebase';
 import Loading from '../sections/Loading';
 import Devider from '../sections/Devider';
 import { loadActiveData } from '../actions/ActiveWorkoutActions';
+import OfflineNotice from '../sections/OfflineNotice';
 
 const styles = StyleSheet.create({
   imagestyle: {
@@ -328,6 +329,7 @@ class Home extends React.Component {
         <View
           style={this.props.loading ? styles.loadingContainer : styles.container}
         >
+          <OfflineNotice />
           {this.renderFilterPanel()}
           <Devider />
           {this.renderContent()}
@@ -339,6 +341,7 @@ class Home extends React.Component {
       <View
         style={this.props.loading ? styles.loadingContainer : styles.noActive}
       >
+        <OfflineNotice setAbsolute />
         <Text style={styles.noActiveText}>
           {!this.props.loading ? 'No ACTIVE workouts' : ''}
         </Text>
