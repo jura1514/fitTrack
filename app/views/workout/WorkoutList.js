@@ -150,6 +150,7 @@ class WorkoutList extends React.Component {
   processDeleteWorkout = (id) => {
     this.props.deleteWorkoutAction(id).then(() => {
       this.loadData();
+      this.props.navigation.setParams({ selectedWorkout: '' });
     });
   }
 
