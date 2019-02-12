@@ -358,6 +358,7 @@ const mapStateToProps = (state) => {
     exercises: state.activeWorkout.exercises,
     loading: state.activeWorkout.loading,
     error: state.activeWorkout.error,
+    isConnected: state.network.isConnected,
   };
 };
 
