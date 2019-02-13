@@ -19,8 +19,11 @@ import {
   loadWorkoutsData,
   loadWorkoutDays,
   deleteWorkoutAction,
+  loadWorkoutsFromStorage,
+  loadDaysFromStorage,
 } from '../../actions/WorkoutActions';
 import OfflineNotice from '../../sections/OfflineNotice';
+import { storeData } from '../../services/AsyncStorage';
 
 const styles = StyleSheet.create({
   imagestyle: {
@@ -104,7 +107,12 @@ class WorkoutList extends React.Component {
   };
 
   didFocus = () => {
-    this.loadData();
+    if (this.props.IsConnected) {
+      this.loadData();
+    } else {
+      this.loadOfflineData();
+    }
+    this.loadOfflineData();
     this.setBackButtonListener();
     this.props.navigation.setParams({ handleLogOut: this.logoutUser });
   }
@@ -119,10 +127,43 @@ class WorkoutList extends React.Component {
         if (this.props.workouts && Array.isArray(this.props.workouts)) {
           const workoutsWithDays = [];
           let counter = 0;
+          // required to store days in local storage
+          const arrayOfDays = [];
           this.props.workouts.forEach((workout) => {
             this.props.loadWorkoutDays(workout.id)
-              .then((length) => {
-                workout.numberOfDays = length; // eslint-disable-line no-param-reassign
+              .then((days) => {
+                workout.numberOfDays = days // eslint-disable-line no-param-reassign
+                  ? days.length : 0;
+                workoutsWithDays.push(workout);
+                counter += 1;
+
+                if (days) {
+                  days.forEach(e => arrayOfDays.push(e));
+                }
+
+                if (counter === this.props.workouts.length) {
+                  storeData('days', JSON.stringify(arrayOfDays));
+                  this.setState({ workoutsWithDays });
+                }
+              });
+          });
+        }
+      });
+  }
+
+  loadOfflineData = () => {
+    this.props.loadWorkoutsData()
+      .then(() => {
+        if (this.props.workouts && Array.isArray(this.props.workouts)) {
+          this.props.loadDaysFromStorage()
+            .then((allStoredDays) => {
+              const workoutsWithDays = [];
+              let counter = 0;
+
+              this.props.workouts.forEach((workout) => {
+                const findWorkoutDays = allStoredDays.filter(e => e.workoutId === workout.id);
+                workout.numberOfDays = findWorkoutDays // eslint-disable-line no-param-reassign
+                  ? findWorkoutDays.length : 0;
                 workoutsWithDays.push(workout);
                 counter += 1;
 
@@ -130,7 +171,7 @@ class WorkoutList extends React.Component {
                   this.setState({ workoutsWithDays });
                 }
               });
-          });
+            });
         }
       });
   }
@@ -258,6 +299,7 @@ const mapStateToProps = (state) => {
     days: state.workout.days,
     loading: state.workout.loading,
     error: state.workout.error,
+    isConnected: state.network.isConnected,
   };
 };
 
@@ -265,6 +307,8 @@ export default connect(mapStateToProps, {
   loadWorkoutsData,
   loadWorkoutDays,
   deleteWorkoutAction,
+  loadWorkoutsFromStorage,
+  loadDaysFromStorage,
 })(WorkoutList);
 
 WorkoutList.propTypes = {

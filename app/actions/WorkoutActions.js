@@ -1,4 +1,5 @@
 import firebase from '../config/firebase';
+import { retrieveData, storeData } from '../services/AsyncStorage';
 
 const actionTypes = {
   setLoadingAction: 'SET_LOADING',
@@ -35,6 +36,7 @@ export const setWorkoutActiveState = (value) => {
   };
 };
 
+// get days count for workouts
 export const loadWorkoutDays = (workoutId) => {
   return (dispatch) => {
     return new Promise((resolve, reject) => {
@@ -53,11 +55,9 @@ export const loadWorkoutDays = (workoutId) => {
             });
 
             dispatch({ type: actionTypes.getWorkoutDaysFetch, payload: daysWithIds });
-            // for now just returning a count of array since dont need the whole array
-            resolve(daysWithIds.length);
+            resolve(daysWithIds);
           } else {
-            // for now just returning a count of array since dont need the whole array
-            resolve(0);
+            resolve(null);
           }
         })
         .catch(() => {
@@ -68,6 +68,7 @@ export const loadWorkoutDays = (workoutId) => {
   };
 };
 
+// load all workouts -> return them to view and store locally
 export const loadWorkoutsData = () => {
   const { currentUser } = firebase.auth();
 
@@ -87,6 +88,9 @@ export const loadWorkoutsData = () => {
             return e[1];
           });
 
+          // store data locally
+          storeData('workouts', JSON.stringify(workoutsWithIds));
+
           dispatch({ type: actionTypes.getWorkoutsFetch, payload: workoutsWithIds });
           resolve();
         })
@@ -98,6 +102,46 @@ export const loadWorkoutsData = () => {
   };
 };
 
+// load from local storage workouts if app offline
+export const loadWorkoutsFromStorage = () => {
+  return (dispatch) => {
+    return new Promise((resolve, reject) => {
+      retrieveData('workouts').then((workouts) => {
+        const parsedWorkouts = JSON.parse(workouts);
+        if (parsedWorkouts) {
+          resolve(parsedWorkouts);
+          dispatch({ type: actionTypes.getWorkoutsFetch, payload: parsedWorkouts });
+        } else {
+          dispatch({ type: actionTypes.getWorkoutsFetchErr });
+          reject();
+        }
+      });
+    });
+  };
+};
+
+// load from local storage days if app offline
+export const loadDaysFromStorage = () => {
+  return (dispatch) => {
+    return new Promise((resolve, reject) => {
+      retrieveData('days').then((days) => {
+        const parsedDays = JSON.parse(days);
+        if (parsedDays) {
+          resolve(parsedDays);
+          dispatch({ type: actionTypes.getWorkoutDaysFetch, payload: parsedDays });
+        } else {
+          dispatch({ type: actionTypes.getWorkoutDaysFetchErr });
+          reject();
+        }
+      }).catch((error) => {
+        dispatch({ type: actionTypes.getWorkoutDaysFetchErr });
+        reject(error);
+      });
+    });
+  };
+};
+
+// load data for specific workout
 export const loadWorkoutData = (id, dispatchExtra) => {
   return (dispatch) => {
     firebase
@@ -124,6 +168,7 @@ export const loadWorkoutData = (id, dispatchExtra) => {
   };
 };
 
+// delete workout
 export const deleteWorkoutAction = (id) => {
   return (dispatch) => {
     return new Promise((resolve, reject) => {
