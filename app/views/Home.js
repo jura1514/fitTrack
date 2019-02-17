@@ -17,7 +17,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import db from '../config/firebase';
 import Loading from '../sections/Loading';
 import Devider from '../sections/Devider';
-import { loadActiveData } from '../actions/ActiveWorkoutActions';
+import { loadActiveData, loadActiveDataFromStorage } from '../actions/ActiveWorkoutActions';
 import OfflineNotice from '../sections/OfflineNotice';
 
 const styles = StyleSheet.create({
@@ -167,7 +167,12 @@ class Home extends React.Component {
   };
 
   didFocus = () => {
-    this.props.loadActiveData();
+    if (this.props.IsConnected) {
+      // this.props.loadActiveData();
+    } else {
+      // this.props.loadActiveDataFromStorage();
+    }
+    this.props.loadActiveDataFromStorage();
 
     this.setBackButtonListener();
     this.props.navigation.setParams({ handleLogOut: this.logoutUser });
@@ -362,7 +367,7 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, { loadActiveData })(Home);
+export default connect(mapStateToProps, { loadActiveData, loadActiveDataFromStorage })(Home);
 
 Home.propTypes = {
   navigation: PropTypes.shape({

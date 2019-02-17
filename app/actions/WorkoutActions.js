@@ -1,3 +1,4 @@
+import moment from 'moment';
 import firebase from '../config/firebase';
 import { retrieveData, storeData } from '../services/AsyncStorage';
 
@@ -141,6 +142,33 @@ export const loadDaysFromStorage = () => {
   };
 };
 
+// load data for specific workout from the local database if app offline
+export const loadWorkoutDataFromStorage = (id, dispatchExtra) => {
+  return (dispatch) => {
+    retrieveData('workouts').then((workouts) => {
+      const parsedWorkouts = JSON.parse(workouts);
+      if (parsedWorkouts) {
+        const workout = parsedWorkouts.find(e => e.id === id);
+        if (workout) {
+          if (dispatchExtra) {
+            dispatch(setWorkoutName(workout.name));
+            dispatch(setWorkoutActiveState(workout.isActive));
+            dispatch({ type: actionTypes.getWorkoutFetch, payload: workout });
+          } else {
+            dispatch({ type: actionTypes.getWorkoutFetch, payload: workout });
+          }
+        } else {
+          dispatch({ type: actionTypes.getWorkoutFetch, payload: null });
+        }
+      } else {
+        dispatch({ type: actionTypes.getWorkoutFetch, payload: null });
+      }
+    }).catch(() => {
+      dispatch({ type: actionTypes.getWorkoutFetchErr });
+    });
+  };
+};
+
 // load data for specific workout
 export const loadWorkoutData = (id, dispatchExtra) => {
   return (dispatch) => {
@@ -184,5 +212,38 @@ export const deleteWorkoutAction = (id) => {
           reject();
         });
     });
+  };
+};
+
+
+export const addNewWorkout = (name, makeActive) => {
+  const creationTime = moment().format('YYYY-MM-DD HH:mm');
+  const { currentUser } = firebase.auth();
+  const { email } = currentUser;
+
+  return (dispatch, getState) => {
+    const state = getState();
+    const { isConnected } = state.network;
+    firebase
+      .database()
+      .ref('/Workouts')
+      .push({
+        name,
+        makeActive,
+        email,
+        creationTime,
+      })
+      .then((data) => {
+      // success callback
+        console.log('data ', data);
+
+        // dispatch({
+        //   type: actionTypes.findActiveWorkout,
+        //   payload: active,
+        // });
+      })
+      .catch(() => {
+        // dispatch({ type: actionTypes.findActiveWorkoutError });
+      });
   };
 };

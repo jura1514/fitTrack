@@ -19,9 +19,11 @@ import {
   setLoading,
   setWorkoutName,
   setWorkoutActiveState,
+  loadWorkoutDataFromStorage,
 } from '../../actions/WorkoutActions';
 import {
   findActiveWorkout,
+  findActiveWorkoutFromStorage,
 } from '../../actions/ActiveWorkoutActions';
 import OfflineNotice from '../../sections/OfflineNotice';
 
@@ -115,9 +117,16 @@ class ManageWorkout extends Component {
     const workoutId = this.props.navigation.getParam('wourkoutId', null);
 
     if (workoutId) {
-      this.props.setLoading(true);
-      this.props.loadWorkoutData(workoutId, true);
-      this.props.findActiveWorkout();
+      if (this.props.isConnected) {
+        this.props.setLoading(true);
+        // eval('this.props.loadWorkoutData')(workoutId, true);
+        // this.props.loadWorkoutData(workoutId, true);
+        this.props.findActiveWorkout();
+      } else {
+        this.props.setLoading(true);
+        this.props.loadWorkoutDataFromStorage(workoutId, true);
+        this.props.findActiveWorkoutFromStorage();
+      }
       this.setState({ btnText: 'Save' });
     } else {
       this.setState({ btnText: 'Add' });
@@ -239,6 +248,7 @@ const mapStateToProps = (state) => {
     loading: state.workout.loading,
     fetchError: state.workout.error,
     activeWorkout: state.activeWorkout.activeWorkout,
+    isConnected: state.network.isConnected,
   };
 };
 
@@ -248,6 +258,8 @@ export default connect(mapStateToProps, {
   setWorkoutName,
   setWorkoutActiveState,
   findActiveWorkout,
+  loadWorkoutDataFromStorage,
+  findActiveWorkoutFromStorage,
 })(ManageWorkout);
 
 

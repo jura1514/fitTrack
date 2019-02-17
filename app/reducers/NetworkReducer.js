@@ -1,5 +1,6 @@
 const initialState = {
   isConnected: true,
+  queue: [],
 };
 
 const networkReducer = (state = initialState, action) => {
@@ -9,6 +10,20 @@ const networkReducer = (state = initialState, action) => {
         ...state,
         isConnected: action.payload,
       };
+
+    case 'CLEAR_QUEUE':
+      return {
+        queue: [],
+      };
+
+    case 'ADD_TO_QUEUE': {
+      const q = state.queue;
+      q.push(action);
+
+      return {
+        queue: q,
+      };
+    }
 
     default:
       return state;

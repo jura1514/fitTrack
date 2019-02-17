@@ -1,4 +1,5 @@
 import firebase from '../config/firebase';
+import { retrieveData } from '../services/AsyncStorage';
 
 const actionTypes = {
   findActiveWorkout: 'FIND_ACTIVE_WORKOUT',
@@ -151,5 +152,84 @@ export const findActiveWorkout = () => {
       .catch(() => {
         dispatch({ type: actionTypes.findActiveWorkoutError });
       });
+  };
+};
+
+// load from local storage workouts if app offline
+export const loadActiveDataFromStorage = () => {
+  return (dispatch) => {
+    retrieveData('workouts').then((workouts) => {
+      const parsedWorkouts = JSON.parse(workouts);
+      if (parsedWorkouts) {
+        const activeWorkout = parsedWorkouts.find(e => e.isActive);
+
+        if (activeWorkout) {
+          retrieveData('days').then((days) => {
+            const parsedDays = JSON.parse(days);
+            if (parsedDays) {
+              const activeWorkoutDays = parsedDays.filter(e => e.workoutId === activeWorkout.id);
+
+              if (activeWorkoutDays) {
+                dispatch({
+                  type: actionTypes.getActiveDataFetch,
+                  activeWorkout,
+                  days: activeWorkoutDays,
+                  exercises: [],
+                });
+              } else {
+                dispatch({
+                  type: actionTypes.getActiveDataFetch,
+                  activeWorkout,
+                  days: [],
+                  exercises: [],
+                });
+              }
+            } else {
+              dispatch({
+                type: actionTypes.getActiveDataFetch,
+                activeWorkout,
+                days: [],
+                exercises: [],
+              });
+            }
+          });
+        } else {
+          dispatch({
+            type: actionTypes.getActiveDataFetch,
+            activeWorkout: null,
+            days: [],
+            exercises: [],
+          });
+        }
+      } else {
+        dispatch({
+          type: actionTypes.getActiveDataFetch,
+          activeWorkout: null,
+          days: [],
+          exercises: [],
+        });
+      }
+    });
+  };
+};
+
+// load data for specific workout from the local database if app offline
+export const findActiveWorkoutFromStorage = () => {
+  return (dispatch) => {
+    retrieveData('workouts').then((workouts) => {
+      const parsedWorkouts = JSON.parse(workouts);
+      if (parsedWorkouts) {
+        const activeWorkout = parsedWorkouts.find(e => e.isActive);
+
+        dispatch({
+          type: actionTypes.findActiveWorkout,
+          payload: activeWorkout,
+        });
+      } else {
+        dispatch({ type: actionTypes.findActiveWorkoutError });
+      }
+    }).catch(() => {
+      dispatch({ type: actionTypes.findActiveWorkoutError });
+    });
   };
 };

@@ -112,7 +112,6 @@ class WorkoutList extends React.Component {
     } else {
       this.loadOfflineData();
     }
-    this.loadOfflineData();
     this.setBackButtonListener();
     this.props.navigation.setParams({ handleLogOut: this.logoutUser });
   }
@@ -152,7 +151,7 @@ class WorkoutList extends React.Component {
   }
 
   loadOfflineData = () => {
-    this.props.loadWorkoutsData()
+    this.props.loadWorkoutsFromStorage()
       .then(() => {
         if (this.props.workouts && Array.isArray(this.props.workouts)) {
           this.props.loadDaysFromStorage()
