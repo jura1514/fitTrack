@@ -26,6 +26,9 @@ import {
   findActiveWorkout,
   findActiveWorkoutFromStorage,
 } from '../../actions/ActiveWorkoutActions';
+import {
+  addWorkoutToQueue,
+} from '../../actions/NetworkActions';
 import OfflineNotice from '../../sections/OfflineNotice';
 
 
@@ -162,19 +165,29 @@ class ManageWorkout extends Component {
 
   createOrUpdateWorkout = () => {
     if (this.props.workoutRecord) {
-      const workoutId = this.props.navigation.getParam('wourkoutId', null);
-      updateWorkout(
-        workoutId,
-        this.props.name,
-        this.props.makeActive,
-      ).then(() => {
-        Alert.alert('Success', 'Workout saved.');
-        this.props.navigation.goBack();
-      })
-        .catch((error) => {
-          Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
-        });
+      this.handleUpdateWorkout();
     } else {
+      this.handleCreateWorkout();
+    }
+  };
+
+  handleUpdateWorkout = () => {
+    const workoutId = this.props.navigation.getParam('wourkoutId', null);
+    updateWorkout(
+      workoutId,
+      this.props.name,
+      this.props.makeActive,
+    ).then(() => {
+      Alert.alert('Success', 'Workout saved.');
+      this.props.navigation.goBack();
+    })
+      .catch((error) => {
+        Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
+      });
+  };
+
+  handleCreateWorkout = () => {
+    if (this.props.isConnected) {
       addWorkoutToDb(this.props.name, this.props.makeActive)
         .then(() => {
           Alert.alert('Success', 'Workout added');
@@ -183,6 +196,13 @@ class ManageWorkout extends Component {
         .catch((error) => {
           Alert.alert('Error', `Couldn't add a workout. Reason:${error}`);
         });
+    } else {
+      this.props.addWorkoutToQueue({
+        name: this.props.name,
+        isActive: this.props.makeActive,
+      });
+      Alert.alert('Alert', 'Workout added to the queue and will be available when you back online');
+      this.props.navigation.navigate('ManageDaysRT');
     }
   };
 
@@ -269,6 +289,7 @@ export default connect(mapStateToProps, {
   loadWorkoutDataFromStorage,
   findActiveWorkoutFromStorage,
   setLoadedWorkout,
+  addWorkoutToQueue,
 })(ManageWorkout);
 
 

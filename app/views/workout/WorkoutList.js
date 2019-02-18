@@ -22,6 +22,7 @@ import {
   loadWorkoutsFromStorage,
   loadDaysFromStorage,
   loadExercisesForDay,
+  setLoading,
 } from '../../actions/WorkoutActions';
 import OfflineNotice from '../../sections/OfflineNotice';
 import { storeData } from '../../services/AsyncStorage';
@@ -108,6 +109,7 @@ class WorkoutList extends React.Component {
   };
 
   didFocus = () => {
+    this.props.setLoading(true);
     if (this.props.isConnected) {
       this.loadData();
     } else {
@@ -336,6 +338,7 @@ export default connect(mapStateToProps, {
   loadWorkoutsFromStorage,
   loadDaysFromStorage,
   loadExercisesForDay,
+  setLoading,
 })(WorkoutList);
 
 WorkoutList.propTypes = {

@@ -1,6 +1,7 @@
 const initialState = {
   isConnected: true,
-  queue: [],
+  addWorkoutQueue: [],
+  updateWorkoutQueue: [],
 };
 
 const networkReducer = (state = initialState, action) => {
@@ -11,17 +12,16 @@ const networkReducer = (state = initialState, action) => {
         isConnected: action.payload,
       };
 
-    case 'CLEAR_QUEUE':
+    case 'CLEAR_ADD_WORKOUT_QUEUE':
       return {
-        queue: [],
+        ...state,
+        addWorkoutQueue: action.payload,
       };
 
-    case 'ADD_TO_QUEUE': {
-      const q = state.queue;
-      q.push(action);
-
+    case 'ADD_WORKOUT_QUEUE': {
       return {
-        queue: q,
+        ...state,
+        addWorkoutQueue: state.addWorkoutQueue.concat([action.payload]),
       };
     }
 

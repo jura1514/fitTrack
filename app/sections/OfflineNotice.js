@@ -7,7 +7,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import { connect } from 'react-redux';
-import networkChange from '../actions/NetworkActions';
+import {
+  networkChange,
+  clearAddWorkoutQueue,
+} from '../actions/NetworkActions';
 
 const { width } = Dimensions.get('window');
 
@@ -40,6 +43,9 @@ class OfflineNotice extends PureComponent {
 
   handleConnectivityChange = (isConnected) => {
     this.props.networkChange(isConnected);
+    if (isConnected) {
+      this.props.clearAddWorkoutQueue();
+    }
   }
 
   drawConnectionStatusBar = (isAbsolute) => {
@@ -68,4 +74,7 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, { networkChange })(OfflineNotice);
+export default connect(mapStateToProps, {
+  networkChange,
+  clearAddWorkoutQueue,
+})(OfflineNotice);
