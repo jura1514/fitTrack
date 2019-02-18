@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import {
   networkChange,
   clearAddWorkoutQueue,
+  clearUpdateWorkoutQueue,
 } from '../actions/NetworkActions';
 
 const { width } = Dimensions.get('window');
@@ -45,6 +46,7 @@ class OfflineNotice extends PureComponent {
     this.props.networkChange(isConnected);
     if (isConnected) {
       this.props.clearAddWorkoutQueue();
+      this.props.clearUpdateWorkoutQueue();
     }
   }
 
@@ -77,4 +79,5 @@ const mapStateToProps = (state) => {
 export default connect(mapStateToProps, {
   networkChange,
   clearAddWorkoutQueue,
+  clearUpdateWorkoutQueue,
 })(OfflineNotice);

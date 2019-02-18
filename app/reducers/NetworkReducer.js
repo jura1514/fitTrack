@@ -25,6 +25,19 @@ const networkReducer = (state = initialState, action) => {
       };
     }
 
+    case 'CLEAR_UPDATE_WORKOUT_QUEUE':
+      return {
+        ...state,
+        updateWorkoutQueue: action.payload,
+      };
+
+    case 'UPDATE_WORKOUT_QUEUE': {
+      return {
+        ...state,
+        updateWorkoutQueue: state.updateWorkoutQueue.concat([action.payload]),
+      };
+    }
+
     default:
       return state;
   }

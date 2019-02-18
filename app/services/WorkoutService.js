@@ -22,9 +22,9 @@ export const addWorkoutToDb = (name, isActive) => {
       email,
       creationTime,
     })
-    .then((data) => {
+    .then(() => {
       // success callback
-      console.log('data ', data);
+      // console.log('data ', data);
     })
     .catch((error) => {
       // error callback
@@ -39,9 +39,9 @@ export const updateWorkout = (id, name, isActive) => db
     name,
     isActive,
   })
-  .then((data) => {
+  .then(() => {
     // success callback
-    console.log('data ', data);
+    // console.log('data ', data);
   })
   .catch((error) => {
     // error callback

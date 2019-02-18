@@ -28,6 +28,7 @@ import {
 } from '../../actions/ActiveWorkoutActions';
 import {
   addWorkoutToQueue,
+  updateWorkoutToQueue,
 } from '../../actions/NetworkActions';
 import OfflineNotice from '../../sections/OfflineNotice';
 
@@ -173,17 +174,27 @@ class ManageWorkout extends Component {
 
   handleUpdateWorkout = () => {
     const workoutId = this.props.navigation.getParam('wourkoutId', null);
-    updateWorkout(
-      workoutId,
-      this.props.name,
-      this.props.makeActive,
-    ).then(() => {
-      Alert.alert('Success', 'Workout saved.');
-      this.props.navigation.goBack();
-    })
-      .catch((error) => {
-        Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
+    if (this.props.isConnected) {
+      updateWorkout(
+        workoutId,
+        this.props.name,
+        this.props.makeActive,
+      ).then(() => {
+        Alert.alert('Success', 'Workout saved.');
+        this.props.navigation.goBack();
+      })
+        .catch((error) => {
+          Alert.alert('Error', `Couldn't update a workout. Reason:${error}`);
+        });
+    } else {
+      this.props.updateWorkoutToQueue({
+        workoutId,
+        name: this.props.name,
+        isActive: this.props.makeActive,
       });
+      Alert.alert('Alert', 'Details stored and will be updated when you back online');
+      this.props.navigation.navigate('ManageDaysRT');
+    }
   };
 
   handleCreateWorkout = () => {
@@ -290,6 +301,7 @@ export default connect(mapStateToProps, {
   findActiveWorkoutFromStorage,
   setLoadedWorkout,
   addWorkoutToQueue,
+  updateWorkoutToQueue,
 })(ManageWorkout);
 
 

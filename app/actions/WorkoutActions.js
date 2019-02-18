@@ -279,34 +279,32 @@ export const deleteWorkoutAction = (id) => {
 };
 
 
-export const addNewWorkout = (name, makeActive) => {
-  const creationTime = moment().format('YYYY-MM-DD HH:mm');
-  const { currentUser } = firebase.auth();
-  const { email } = currentUser;
+// export const addNewWorkout = (name, makeActive) => {
+//   const creationTime = moment().format('YYYY-MM-DD HH:mm');
+//   const { currentUser } = firebase.auth();
+//   const { email } = currentUser;
 
-  return (dispatch, getState) => {
-    const state = getState();
-    const { isConnected } = state.network;
-    firebase
-      .database()
-      .ref('/Workouts')
-      .push({
-        name,
-        makeActive,
-        email,
-        creationTime,
-      })
-      .then((data) => {
-      // success callback
-        console.log('data ', data);
+//   return (dispatch) => {
+//     firebase
+//       .database()
+//       .ref('/Workouts')
+//       .push({
+//         name,
+//         makeActive,
+//         email,
+//         creationTime,
+//       })
+//       .then(() => {
+//       // success callback
+//         // console.log('data ', data);
 
-        // dispatch({
-        //   type: actionTypes.findActiveWorkout,
-        //   payload: active,
-        // });
-      })
-      .catch(() => {
-        // dispatch({ type: actionTypes.findActiveWorkoutError });
-      });
-  };
-};
+//         // dispatch({
+//         //   type: actionTypes.findActiveWorkout,
+//         //   payload: active,
+//         // });
+//       })
+//       .catch(() => {
+//         // dispatch({ type: actionTypes.findActiveWorkoutError });
+//       });
+//   };
+// };
