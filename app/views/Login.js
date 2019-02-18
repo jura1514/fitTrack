@@ -10,7 +10,10 @@ import {
   KeyboardAvoidingView,
   Image,
 } from 'react-native';
-import db from '../config/firebase';
+import { connect } from 'react-redux';
+import {
+  loginWithEmailAndPassword,
+} from '../actions/AuthActions';
 import Loading from '../sections/Loading';
 import OfflineNotice from '../sections/OfflineNotice';
 
@@ -61,7 +64,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default class Login extends React.Component {
+class Login extends React.Component {
   static navigationOptions = {
     title: 'Login',
   };
@@ -79,10 +82,8 @@ export default class Login extends React.Component {
     this.setState({ loading: true });
 
     const { email, password } = this.state;
-    db.auth()
-      .signInWithEmailAndPassword(email, password)
+    this.props.loginWithEmailAndPassword(email, password)
       .then(() => {
-        // this.saveUserData(email);
         this.props.navigation.navigate('HomeRT');
       })
       .catch((error) => {
@@ -90,17 +91,6 @@ export default class Login extends React.Component {
         Alert.alert('Failed to login.', `Reason: ${error.message}`);
       });
   };
-
-  // saveUserData = async (email) => {
-  //   try {
-  //     await AsyncStorage.setItem('email', email);
-  //     this.setState({ loading: false });
-  //     this.props.navigation.navigate('HomeRT');
-  //   } catch (error) {
-  //     this.setState({ loading: false });
-  //     Alert.alert('Failed to save user data.', `Reason: ${error.message}`);
-  //   }
-  // }
 
   renderLoading = () => {
     if (this.state.loading) {
@@ -171,6 +161,16 @@ export default class Login extends React.Component {
     );
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    isConnected: state.network.isConnected,
+  };
+};
+
+export default connect(mapStateToProps, {
+  loginWithEmailAndPassword,
+})(Login);
 
 Login.propTypes = {
   navigation: PropTypes.shape({

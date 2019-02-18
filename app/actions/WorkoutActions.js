@@ -1,4 +1,4 @@
-import moment from 'moment';
+// import moment from 'moment';
 import firebase from '../config/firebase';
 import { retrieveData, storeData } from '../services/AsyncStorage';
 

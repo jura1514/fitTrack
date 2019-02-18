@@ -1,16 +1,19 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import db from '../config/firebase';
+import {
+  checkUserLoggedIn,
+} from '../actions/AuthActions';
 import Loading from '../sections/Loading';
 
-// eslint-disable-next-line react/prefer-stateless-function
-export default class Splash extends React.Component {
+
+class Splash extends React.Component {
   static navigationOptions = {
     header: null,
   };
 
   componentDidMount() {
-    db.auth().onAuthStateChanged((user) => {
+    this.props.checkUserLoggedIn().then((user) => {
       if (user) {
         this.props.navigation.navigate('HomeRT');
       } else {
@@ -23,6 +26,16 @@ export default class Splash extends React.Component {
     return <Loading animating />;
   }
 }
+
+const mapStateToProps = (state) => {
+  return {
+    isConnected: state.network.isConnected,
+  };
+};
+
+export default connect(mapStateToProps, {
+  checkUserLoggedIn,
+})(Splash);
 
 Splash.propTypes = {
   navigation: PropTypes.shape({
