@@ -6,7 +6,9 @@ export const getCurrentUser = () => {
   return user;
 };
 
-export const deleteWorkout = (id) => { db.database().ref(`Workouts/${id}`).set({}); };
+export const deleteWorkout = (id) => {
+  return db.database().ref(`Workouts/${id}`).set({});
+};
 
 export const addWorkoutToDb = (name, isActive) => {
   const creationTime = moment().format('YYYY-MM-DD HH:mm');

@@ -2,6 +2,7 @@ const initialState = {
   isConnected: true,
   addWorkoutQueue: [],
   updateWorkoutQueue: [],
+  deleteWorkoutQueue: [],
 };
 
 const networkReducer = (state = initialState, action) => {
@@ -35,6 +36,19 @@ const networkReducer = (state = initialState, action) => {
       return {
         ...state,
         updateWorkoutQueue: state.updateWorkoutQueue.concat([action.payload]),
+      };
+    }
+
+    case 'CLEAR_DELETE_WORKOUT_QUEUE':
+      return {
+        ...state,
+        deleteWorkoutQueue: action.payload,
+      };
+
+    case 'DELETE_WORKOUT_QUEUE': {
+      return {
+        ...state,
+        deleteWorkoutQueue: state.deleteWorkoutQueue.concat([action.payload]),
       };
     }
 

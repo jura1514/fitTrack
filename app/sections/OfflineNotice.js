@@ -11,6 +11,7 @@ import {
   networkChange,
   clearAddWorkoutQueue,
   clearUpdateWorkoutQueue,
+  clearDeleteWorkoutQueue,
 } from '../actions/NetworkActions';
 
 const { width } = Dimensions.get('window');
@@ -47,6 +48,7 @@ class OfflineNotice extends PureComponent {
     if (isConnected) {
       this.props.clearAddWorkoutQueue();
       this.props.clearUpdateWorkoutQueue();
+      this.props.clearDeleteWorkoutQueue();
     }
   }
 
@@ -80,4 +82,5 @@ export default connect(mapStateToProps, {
   networkChange,
   clearAddWorkoutQueue,
   clearUpdateWorkoutQueue,
+  clearDeleteWorkoutQueue,
 })(OfflineNotice);

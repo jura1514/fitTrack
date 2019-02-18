@@ -24,6 +24,9 @@ import {
   loadExercisesForDay,
   setLoading,
 } from '../../actions/WorkoutActions';
+import {
+  deleteWorkoutToQueue,
+} from '../../actions/NetworkActions';
 import OfflineNotice from '../../sections/OfflineNotice';
 import { storeData } from '../../services/AsyncStorage';
 
@@ -204,6 +207,36 @@ class WorkoutList extends React.Component {
       });
   }
 
+  loadUpdatedOfflineData = (id) => {
+    this.props.loadWorkoutsFromStorage()
+      .then(() => {
+        if (this.props.workouts && Array.isArray(this.props.workouts)) {
+          const updatedWorkouts = this.props.workouts.filter(e => e.id !== id);
+
+          if (updatedWorkouts && Array.isArray(updatedWorkouts)) {
+            storeData('workouts', JSON.stringify(updatedWorkouts));
+            this.props.loadDaysFromStorage()
+              .then((allStoredDays) => {
+                const workoutsWithDays = [];
+                let counter = 0;
+
+                updatedWorkouts.forEach((workout) => {
+                  const findWorkoutDays = allStoredDays.filter(e => e.workoutId === workout.id);
+                  workout.numberOfDays = findWorkoutDays // eslint-disable-line no-param-reassign
+                    ? findWorkoutDays.length : 0;
+                  workoutsWithDays.push(workout);
+                  counter += 1;
+
+                  if (counter === updatedWorkouts.length) {
+                    this.setState({ workoutsWithDays });
+                  }
+                });
+              });
+          }
+        }
+      });
+  }
+
   handleDeleteWorkout = async (id) => {
     Alert.alert(
       'Alert',
@@ -217,10 +250,17 @@ class WorkoutList extends React.Component {
   };
 
   processDeleteWorkout = (id) => {
-    this.props.deleteWorkoutAction(id).then(() => {
-      this.loadData();
+    if (this.props.isConnected) {
+      this.props.deleteWorkoutAction(id).then(() => {
+        this.loadData();
+        this.props.navigation.setParams({ selectedWorkout: '' });
+      });
+    } else {
+      this.props.deleteWorkoutToQueue(id);
+      Alert.alert('Alert', 'Workout set to be deleted and will be removed when you back online');
+      this.loadUpdatedOfflineData(id);
       this.props.navigation.setParams({ selectedWorkout: '' });
-    });
+    }
   }
 
   setBackButtonListener = () => {
@@ -339,6 +379,7 @@ export default connect(mapStateToProps, {
   loadDaysFromStorage,
   loadExercisesForDay,
   setLoading,
+  deleteWorkoutToQueue,
 })(WorkoutList);
 
 WorkoutList.propTypes = {

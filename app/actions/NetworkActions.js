@@ -1,6 +1,7 @@
 import {
   updateWorkout,
   addWorkoutToDb,
+  deleteWorkout,
 } from '../services/WorkoutService';
 
 const actionTypes = {
@@ -9,6 +10,8 @@ const actionTypes = {
   clearAddWorkoutQueueAction: 'CLEAR_ADD_WORKOUT_QUEUE',
   updateWorkoutToQueueAction: 'UPDATE_WORKOUT_QUEUE',
   clearUpdateWorkoutQueueAction: 'CLEAR_UPDATE_WORKOUT_QUEUE',
+  deleteWorkoutToQueueAction: 'DELETE_WORKOUT_QUEUE',
+  clearDeleteWorkoutQueueAction: 'CLEAR_DELETE_WORKOUT_QUEUE',
 };
 
 export const networkChange = (isConnected) => {
@@ -82,6 +85,42 @@ export const clearUpdateWorkoutQueue = () => {
           .catch(() => {
             dispatch({
               type: actionTypes.clearUpdateWorkoutQueueAction,
+              payload: [],
+            });
+          });
+      });
+    }
+  };
+};
+
+export const deleteWorkoutToQueue = (id) => {
+  return {
+    type: actionTypes.deleteWorkoutToQueueAction,
+    payload: id,
+  };
+};
+
+export const clearDeleteWorkoutQueue = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { deleteWorkoutQueue } = state.network;
+    if (deleteWorkoutQueue && deleteWorkoutQueue.length > 0) {
+      let counter = 0;
+      deleteWorkoutQueue.forEach((id) => {
+        deleteWorkout(id)
+          .then(() => {
+            counter += 1;
+
+            if (counter === deleteWorkoutQueue.length) {
+              dispatch({
+                type: actionTypes.clearDeleteWorkoutQueueAction,
+                payload: [],
+              });
+            }
+          })
+          .catch(() => {
+            dispatch({
+              type: actionTypes.clearDeleteWorkoutQueueAction,
               payload: [],
             });
           });
