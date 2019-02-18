@@ -20,6 +20,7 @@ import {
   setWorkoutName,
   setWorkoutActiveState,
   loadWorkoutDataFromStorage,
+  setLoadedWorkout,
 } from '../../actions/WorkoutActions';
 import {
   findActiveWorkout,
@@ -119,8 +120,7 @@ class ManageWorkout extends Component {
     if (workoutId) {
       if (this.props.isConnected) {
         this.props.setLoading(true);
-        // eval('this.props.loadWorkoutData')(workoutId, true);
-        // this.props.loadWorkoutData(workoutId, true);
+        this.props.loadWorkoutData(workoutId, true);
         this.props.findActiveWorkout();
       } else {
         this.props.setLoading(true);
@@ -130,7 +130,15 @@ class ManageWorkout extends Component {
       this.setState({ btnText: 'Save' });
     } else {
       this.setState({ btnText: 'Add' });
+      // reset form if screen was previously loaded
+      this.resetForm();
     }
+  }
+
+  resetForm = () => {
+    this.props.setWorkoutName('');
+    this.props.setWorkoutActiveState(false);
+    this.props.setLoadedWorkout(null);
   }
 
   handleAddEditPress = async () => {
@@ -260,6 +268,7 @@ export default connect(mapStateToProps, {
   findActiveWorkout,
   loadWorkoutDataFromStorage,
   findActiveWorkoutFromStorage,
+  setLoadedWorkout,
 })(ManageWorkout);
 
 

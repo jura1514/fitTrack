@@ -1,6 +1,7 @@
 const initialState = {
   workouts: [],
   days: [],
+  exercisesForDay: [],
   foundWorkout: null,
   workoutName: '',
   workoutActiveState: false,
@@ -10,6 +11,12 @@ const initialState = {
 
 const workoutReducer = (state = initialState, action) => {
   switch (action.type) {
+    case 'SET_LOADED_WORKOUT':
+      return {
+        ...state,
+        foundWorkout: action.payload,
+      };
+
     case 'SET_LOADING':
       return {
         ...state,
@@ -78,6 +85,19 @@ const workoutReducer = (state = initialState, action) => {
       return {
         ...state,
         error: 'Could not delete workout',
+      };
+
+    case 'EXERCISES_FOR_DAY_FETCH':
+      return {
+        ...state,
+        exercisesForDay: action.payload,
+        loading: false,
+      };
+
+    case 'EXERCISES_FOR_DAY_FETCH_ERROR':
+      return {
+        ...state,
+        error: 'Could not fetch workout',
       };
 
     default:

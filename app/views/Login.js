@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import db from '../config/firebase';
 import Loading from '../sections/Loading';
+import OfflineNotice from '../sections/OfflineNotice';
 
 const styles = StyleSheet.create({
   container: {
@@ -113,6 +114,7 @@ export default class Login extends React.Component {
 
     return (
       <KeyboardAvoidingView behavior="padding" style={styles.container}>
+        <OfflineNotice setAbsolute />
         <View style={styles.inputContainer}>
           <Image
             style={styles.inputIcon}

@@ -168,13 +168,29 @@ export const loadActiveDataFromStorage = () => {
             const parsedDays = JSON.parse(days);
             if (parsedDays) {
               const activeWorkoutDays = parsedDays.filter(e => e.workoutId === activeWorkout.id);
-
               if (activeWorkoutDays) {
-                dispatch({
-                  type: actionTypes.getActiveDataFetch,
-                  activeWorkout,
-                  days: activeWorkoutDays,
-                  exercises: [],
+                retrieveData('exercises').then((exercises) => {
+                  const parsedExercises = JSON.parse(exercises);
+                  if (parsedExercises) {
+                    const allExercises = [];
+                    activeWorkoutDays.forEach((day) => {
+                      const dayExercises = parsedExercises.filter(e => e.dayId === day.id);
+                      allExercises.push(...dayExercises);
+                    });
+                    dispatch({
+                      type: actionTypes.getActiveDataFetch,
+                      activeWorkout,
+                      days: activeWorkoutDays,
+                      exercises: allExercises,
+                    });
+                  } else {
+                    dispatch({
+                      type: actionTypes.getActiveDataFetch,
+                      activeWorkout,
+                      days: activeWorkoutDays,
+                      exercises: [],
+                    });
+                  }
                 });
               } else {
                 dispatch({

@@ -14,6 +14,9 @@ const actionTypes = {
   getWorkoutFetchError: 'WORKOUT_FETCH_ERROR',
   deleteWorkoutAction: 'DELETE_WORKOUT',
   deleteWorkoutActionError: 'DELETE_WORKOUT_ERROR',
+  getExercisesForDayFetch: 'EXERCISES_FOR_DAY_FETCH',
+  getExercisesForDayFetchErr: 'EXERCISES_FOR_DAY_FETCH_ERROR',
+  updateLoadedWorkout: 'SET_LOADED_WORKOUT',
 };
 
 export const setLoading = (value) => {
@@ -30,6 +33,13 @@ export const setWorkoutName = (value) => {
   };
 };
 
+export const setLoadedWorkout = (value) => {
+  return {
+    type: actionTypes.updateLoadedWorkout,
+    payload: value,
+  };
+};
+
 export const setWorkoutActiveState = (value) => {
   return {
     type: actionTypes.updateWorkoutActiveStateAction,
@@ -37,7 +47,39 @@ export const setWorkoutActiveState = (value) => {
   };
 };
 
-// get days count for workouts
+// get exercises for day
+export const loadExercisesForDay = (dayId) => {
+  return (dispatch) => {
+    return new Promise((resolve, reject) => {
+      firebase
+        .database()
+        .ref('/Exercises')
+        .orderByChild('dayId')
+        .equalTo(dayId)
+        .once('value', (snapshot) => {
+          if (snapshot.val()) {
+            const exercises = Object.entries(snapshot.val());
+            const exercisesWithIds = exercises.map((e) => {
+              // eslint-disable-next-line
+              e[1].id = e[0];
+              return e[1];
+            });
+
+            dispatch({ type: actionTypes.getExercisesForDayFetch, payload: exercisesWithIds });
+            resolve(exercisesWithIds);
+          } else {
+            resolve(null);
+          }
+        })
+        .catch(() => {
+          dispatch({ type: actionTypes.getExercisesForDayFetchErr });
+          reject();
+        });
+    });
+  };
+};
+
+// get days for workout
 export const loadWorkoutDays = (workoutId) => {
   return (dispatch) => {
     return new Promise((resolve, reject) => {
@@ -116,6 +158,27 @@ export const loadWorkoutsFromStorage = () => {
           dispatch({ type: actionTypes.getWorkoutsFetchErr });
           reject();
         }
+      });
+    });
+  };
+};
+
+// load exercises from local storage if app offline
+export const loadExercisesFromStorage = () => {
+  return (dispatch) => {
+    return new Promise((resolve, reject) => {
+      retrieveData('exercises').then((exercises) => {
+        const parsedExercises = JSON.parse(exercises);
+        if (parsedExercises) {
+          resolve(parsedExercises);
+          dispatch({ type: actionTypes.getExercisesForDayFetch, payload: parsedExercises });
+        } else {
+          dispatch({ type: actionTypes.getExercisesForDayFetchErr });
+          reject();
+        }
+      }).catch((error) => {
+        dispatch({ type: actionTypes.getExercisesForDayFetchErr });
+        reject(error);
       });
     });
   };

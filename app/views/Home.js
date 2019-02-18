@@ -167,12 +167,11 @@ class Home extends React.Component {
   };
 
   didFocus = () => {
-    if (this.props.IsConnected) {
-      // this.props.loadActiveData();
+    if (this.props.isConnected) {
+      this.props.loadActiveData();
     } else {
-      // this.props.loadActiveDataFromStorage();
+      this.props.loadActiveDataFromStorage();
     }
-    this.props.loadActiveDataFromStorage();
 
     this.setBackButtonListener();
     this.props.navigation.setParams({ handleLogOut: this.logoutUser });

@@ -21,6 +21,7 @@ import {
   deleteWorkoutAction,
   loadWorkoutsFromStorage,
   loadDaysFromStorage,
+  loadExercisesForDay,
 } from '../../actions/WorkoutActions';
 import OfflineNotice from '../../sections/OfflineNotice';
 import { storeData } from '../../services/AsyncStorage';
@@ -107,7 +108,7 @@ class WorkoutList extends React.Component {
   };
 
   didFocus = () => {
-    if (this.props.IsConnected) {
+    if (this.props.isConnected) {
       this.loadData();
     } else {
       this.loadOfflineData();
@@ -123,31 +124,57 @@ class WorkoutList extends React.Component {
   loadData = () => {
     this.props.loadWorkoutsData()
       .then(() => {
-        if (this.props.workouts && Array.isArray(this.props.workouts)) {
-          const workoutsWithDays = [];
-          let counter = 0;
-          // required to store days in local storage
-          const arrayOfDays = [];
-          this.props.workouts.forEach((workout) => {
-            this.props.loadWorkoutDays(workout.id)
-              .then((days) => {
-                workout.numberOfDays = days // eslint-disable-line no-param-reassign
-                  ? days.length : 0;
-                workoutsWithDays.push(workout);
-                counter += 1;
+        this.loadDaysForAllWorkouts();
+      });
+  }
 
-                if (days) {
-                  days.forEach(e => arrayOfDays.push(e));
-                }
+  loadDaysForAllWorkouts = () => {
+    if (this.props.workouts && Array.isArray(this.props.workouts)) {
+      const workoutsWithDays = [];
+      let counter = 0;
+      // required to store days in local storage
+      const arrayOfDays = [];
+      this.props.workouts.forEach(async (workout) => {
+        const days = await this.props.loadWorkoutDays(workout.id);
 
-                if (counter === this.props.workouts.length) {
-                  storeData('days', JSON.stringify(arrayOfDays));
-                  this.setState({ workoutsWithDays });
-                }
-              });
-          });
+        workout.numberOfDays = days // eslint-disable-line no-param-reassign
+          ? days.length : 0;
+        workoutsWithDays.push(workout);
+        counter += 1;
+
+        if (days) {
+          days.forEach(e => arrayOfDays.push(e));
+        }
+
+        if (counter === this.props.workouts.length) {
+          storeData('days', JSON.stringify(arrayOfDays));
+          this.setState({ workoutsWithDays });
+
+          // called here just to load and store all exercises in local storage
+          // probably would be better place at Home screen since it's the main screen
+          // which user see when login. However, since currently most of the data is loaded here
+          // I decided to call it here.
+          this.loadExercisesForDays(arrayOfDays);
         }
       });
+    }
+  }
+
+  loadExercisesForDays = (days) => {
+    const allExercises = [];
+    let counter = 0;
+    days.forEach(async (day) => {
+      const exercisesForDay = await this.props.loadExercisesForDay(day.id);
+
+      if (exercisesForDay && exercisesForDay.length > 0) {
+        exercisesForDay.forEach(e => allExercises.push(e));
+      }
+      counter += 1;
+
+      if (counter === days.length) {
+        storeData('exercises', JSON.stringify(allExercises));
+      }
+    });
   }
 
   loadOfflineData = () => {
@@ -308,6 +335,7 @@ export default connect(mapStateToProps, {
   deleteWorkoutAction,
   loadWorkoutsFromStorage,
   loadDaysFromStorage,
+  loadExercisesForDay,
 })(WorkoutList);
 
 WorkoutList.propTypes = {
