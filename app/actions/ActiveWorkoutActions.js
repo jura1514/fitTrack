@@ -94,13 +94,15 @@ export const loadWorkoutDays = (activeWorkout) => {
 
 export const loadActiveData = () => {
   const { currentUser } = firebase.auth();
+  const { email } = currentUser;
+  const providerEmail = currentUser.providerData[0].email;
 
   return (dispatch) => {
     firebase
       .database()
       .ref('/Workouts')
       .orderByChild('email')
-      .equalTo(currentUser.email)
+      .equalTo(email || providerEmail)
       .once('value', (snapshot) => {
         const workouts = snapshot.val();
         let active = null;
@@ -134,13 +136,15 @@ export const loadActiveData = () => {
 
 export const findActiveWorkout = () => {
   const { currentUser } = firebase.auth();
+  const { email } = currentUser;
+  const providerEmail = currentUser.providerData[0].email;
 
   return (dispatch) => {
     firebase
       .database()
       .ref('/Workouts')
       .orderByChild('email')
-      .equalTo(currentUser.email)
+      .equalTo(email || providerEmail)
       .once('value', (snapshot) => {
         const workouts = Object.entries(snapshot.val());
         const active = workouts.find(w => w.find(e => e.isActive));

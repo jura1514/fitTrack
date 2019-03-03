@@ -25,6 +25,20 @@ const networkReducer = (state = initialState, action) => {
         addWorkoutQueue: action.payload,
       };
 
+    case 'LOGIN_WITH_FACEBOOK':
+      return {
+        ...state,
+        loggedInUser: action.payload,
+        isLoggedIn: action.isLoggedIn,
+      };
+
+    case 'LOGIN_WITH_FACEBOOK_ERR':
+      return {
+        ...state,
+        loggedInUser: action.payload,
+        isLoggedIn: action.isLoggedIn,
+      };
+
     default:
       return state;
   }

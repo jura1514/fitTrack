@@ -11,8 +11,10 @@ import {
   Image,
 } from 'react-native';
 import { connect } from 'react-redux';
+import { FontAwesome } from '@expo/vector-icons';
 import {
   loginWithEmailAndPassword,
+  loginWithFacebook,
 } from '../actions/AuthActions';
 import Loading from '../sections/Loading';
 import OfflineNotice from '../sections/OfflineNotice';
@@ -62,6 +64,16 @@ const styles = StyleSheet.create({
   loginText: {
     color: 'white',
   },
+  fbBtn: {
+    color: 'white',
+    backgroundColor: '#00b5ec',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  fbIcon: {
+    color: 'white',
+    marginRight: 10,
+  },
 });
 
 class Login extends React.Component {
@@ -83,6 +95,19 @@ class Login extends React.Component {
 
     const { email, password } = this.state;
     this.props.loginWithEmailAndPassword(email, password)
+      .then(() => {
+        this.props.navigation.navigate('HomeRT');
+      })
+      .catch((error) => {
+        this.setState({ loading: false });
+        Alert.alert('Failed to login.', `Reason: ${error.message}`);
+      });
+  };
+
+  onLoginWithFbPress = () => {
+    this.setState({ loading: true });
+
+    this.props.loginWithFacebook()
       .then(() => {
         this.props.navigation.navigate('HomeRT');
       })
@@ -144,6 +169,16 @@ class Login extends React.Component {
         </TouchableHighlight>
 
         <TouchableHighlight
+          style={[styles.buttonContainer, styles.loginButton]}
+          onPress={() => this.onLoginWithFbPress()}
+        >
+          <View style={styles.fbBtn}>
+            <FontAwesome name="facebook" style={styles.fbIcon} size={25} />
+            <Text style={styles.loginText}>Continue with Facebook</Text>
+          </View>
+        </TouchableHighlight>
+
+        <TouchableHighlight
           style={styles.buttonContainer}
           onPress={() => navigate('ForgotRT')}
         >
@@ -165,11 +200,13 @@ class Login extends React.Component {
 const mapStateToProps = (state) => {
   return {
     isConnected: state.network.isConnected,
+    user: state.auth.loggedInUser,
   };
 };
 
 export default connect(mapStateToProps, {
   loginWithEmailAndPassword,
+  loginWithFacebook,
 })(Login);
 
 Login.propTypes = {

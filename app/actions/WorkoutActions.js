@@ -114,6 +114,8 @@ export const loadWorkoutDays = (workoutId) => {
 // load all workouts -> return them to view and store locally
 export const loadWorkoutsData = () => {
   const { currentUser } = firebase.auth();
+  const { email } = currentUser;
+  const providerEmail = currentUser.providerData[0].email;
 
   return (dispatch) => {
     return new Promise((resolve, reject) => {
@@ -121,7 +123,7 @@ export const loadWorkoutsData = () => {
         .database()
         .ref('/Workouts')
         .orderByChild('email')
-        .equalTo(currentUser.email)
+        .equalTo(email || providerEmail)
         .once('value', (snapshot) => {
           const workouts = Object.entries(snapshot.val());
 

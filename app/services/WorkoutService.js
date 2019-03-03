@@ -14,6 +14,8 @@ export const addWorkoutToDb = (name, isActive) => {
   const creationTime = moment().format('YYYY-MM-DD HH:mm');
   const user = getCurrentUser();
   const { email } = user;
+  const providerEmail = user.providerData[0].email;
+  const foundEmail = email || providerEmail;
 
   return db
     .database()
@@ -21,7 +23,7 @@ export const addWorkoutToDb = (name, isActive) => {
     .push({
       name,
       isActive,
-      email,
+      email: foundEmail,
       creationTime,
     })
     .then(() => {
@@ -53,12 +55,14 @@ export const updateWorkout = (id, name, isActive) => db
 export const getWorkouts = () => {
   const user = getCurrentUser();
   const { email } = user;
+  const providerEmail = user.providerData[0].email;
+  const foundEmail = email || providerEmail;
 
   return db
     .database()
     .ref('/Workouts')
     .orderByChild('email')
-    .equalTo(email)
+    .equalTo(foundEmail)
     .once('value');
 };
 
