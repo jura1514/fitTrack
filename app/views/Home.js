@@ -17,7 +17,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import db from '../config/firebase';
 import Loading from '../sections/Loading';
 import Devider from '../sections/Devider';
-import { loadActiveData, loadActiveDataFromStorage } from '../actions/ActiveWorkoutActions';
+import { loadActiveData, loadActiveDataFromStorage, setLoading } from '../actions/ActiveWorkoutActions';
 import OfflineNotice from '../sections/OfflineNotice';
 
 const styles = StyleSheet.create({
@@ -366,7 +366,11 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, { loadActiveData, loadActiveDataFromStorage })(Home);
+export default connect(mapStateToProps, {
+  loadActiveData,
+  loadActiveDataFromStorage,
+  setLoading,
+})(Home);
 
 Home.propTypes = {
   navigation: PropTypes.shape({

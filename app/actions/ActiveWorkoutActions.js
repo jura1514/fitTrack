@@ -2,12 +2,20 @@ import firebase from '../config/firebase';
 import { retrieveData } from '../services/AsyncStorage';
 
 const actionTypes = {
+  setLoadingAction: 'SET_LOADING',
   findActiveWorkout: 'FIND_ACTIVE_WORKOUT',
   findActiveWorkoutError: 'FIND_ACTIVE_WORKOUT_ERROR',
   getActiveDataFetch: 'ACTIVE_DATA_FETCH',
   getActiveDataFetchExercisesErr: 'ACTIVE_DATA_FETCH_EXERCISES_ERR',
   getActiveDataFetchDaysErr: 'ACTIVE_DATA_FETCH_DAYS_ERR',
   getActiveDataFetchWorkoutErr: 'ACTIVE_DATA_FETCH_WORKOUT_ERR',
+};
+
+export const setLoading = (value) => {
+  return {
+    type: actionTypes.setLoadingAction,
+    payload: value,
+  };
 };
 
 export const loadDayExercises = (activeWorkout, days, id) => {

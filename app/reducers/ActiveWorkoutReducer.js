@@ -53,6 +53,12 @@ const activeWorkoutReducer = (state = initialState, action) => {
         error: 'Could not fetch active workout',
       };
 
+    case 'SET_LOADING':
+      return {
+        ...state,
+        loading: action.payload,
+      };
+
     default:
       return state;
   }

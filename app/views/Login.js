@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
 class Login extends React.Component {
   static navigationOptions = {
     title: 'Login',
+    headerLeft: null,
   };
 
   constructor(props) {
@@ -109,6 +110,7 @@ class Login extends React.Component {
 
     this.props.loginWithFacebook()
       .then(() => {
+        this.setState({ loading: false });
         this.props.navigation.navigate('HomeRT');
       })
       .catch((error) => {
